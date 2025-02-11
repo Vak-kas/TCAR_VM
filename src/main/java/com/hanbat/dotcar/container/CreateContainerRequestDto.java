@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class CreateContainerRequestDto {
     private String OS;
     private String version;
+    private String userEmail;
 }
