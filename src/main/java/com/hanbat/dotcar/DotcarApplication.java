@@ -16,7 +16,5 @@ public class DotcarApplication {
 
 		SpringApplication.run(DotcarApplication.class, args);
 	}
-	//test
-	//test 222
 
 }
