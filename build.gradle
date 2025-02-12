@@ -40,7 +40,7 @@ dependencies {
 //	implementation 'org.springframework.boot:spring-boot-starter-security' /* Spring security */
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
 	implementation 'com.github.docker-java:docker-java:3.4.1'
-	implementation 'com.github.docker-java:docker-java-transport-httpclient5:3.4.1'
+//	implementation 'com.github.docker-java:docker-java-transport-httpclient5:3.4.1'
 //	implementation 'com.github.docker-java:docker-java-transport-okhttp:3.4.1'
 	implementation 'com.github.docker-java:docker-java-transport-zerodep:3.4.1'
 }

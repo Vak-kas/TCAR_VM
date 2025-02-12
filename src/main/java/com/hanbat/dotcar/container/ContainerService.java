@@ -32,17 +32,7 @@ public class ContainerService {
 //            .withDockerHost("unix:///var/run/docker.sock")
             .build();
 
-
-    // DockerHttpClient 인스턴스 생성 -> Docker 데몬과 HTTP 통신을 하기 위한 클라이언트를 생성
-//    private final DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
-//            .dockerHost(config.getDockerHost())          // DockerClientConfig에서 Docker 호스트 정보 가져오기
-//            .sslConfig(config.getSSLConfig())              // SSL 구성 (TLS 인증서 등)
-//            .maxConnections(100)                           // 최대 연결 수 설정
-//            .connectionTimeout(Duration.ofSeconds(30))     // 연결 타임아웃 설정
-//            .responseTimeout(Duration.ofSeconds(45))       // 응답 타임아웃 설정
-//            .build();
-
-    DockerHttpClient httpClient = new ZerodepDockerHttpClient.Builder()
+    private final DockerHttpClient httpClient = new ZerodepDockerHttpClient.Builder()
             .dockerHost(config.getDockerHost())          // DockerClientConfig에서 Docker 호스트 정보 가져오기
             .sslConfig(config.getSSLConfig())              // SSL 구성 (TLS 인증서 등)
             .maxConnections(100)                           // 최대 연결 수 설정
@@ -71,6 +61,9 @@ public class ContainerService {
         String imageName = "ubuntu:22.04";
 
 
+        //TODO : 이미지 존재하는지 확인
+
+
         //컨테이너 생성
         CreateContainerResponse containerResponse = dockerClient.createContainerCmd(imageName)
                 .exec();
@@ -84,7 +77,7 @@ public class ContainerService {
         //컨테이너 아이디, 포트번호 return
         ContainerInfoDto containerInfoDto = ContainerInfoDto.builder()
                 .containerId(containerId)
-                .port("N/A") //TODO
+                .port("N/A") //TODO : 포트 나온 거 넣어두기
                 .build();
 
         //TODO : 데이터베이스 저장
