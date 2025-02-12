@@ -13,7 +13,6 @@ public class DotcarApplication {
 		System.setProperty("DB_url", dotenv.get("DB_url"));
 		System.setProperty("DB_username", dotenv.get("DB_username"));
 		System.setProperty("DB_password", dotenv.get("DB_password"));
-
 		SpringApplication.run(DotcarApplication.class, args);
 	}
 

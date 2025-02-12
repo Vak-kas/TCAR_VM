@@ -6,11 +6,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class CreateContainerRequestDto {
-    private String os;
-    private String version;
-    private String userEmail;
+public class CreateContainerResponseDto {
+    private String containerId; //컨테이너 아이디
+    private String port; //포트 번호
+
 }
