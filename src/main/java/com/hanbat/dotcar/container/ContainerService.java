@@ -56,13 +56,7 @@ public class ContainerService {
         //TODO : 이메일 검증
         String userEmail = createContainerRequestDto.getUserEmail();
 
-
-
-        //TODO : 운영체제별, 버전별로 나누기
-        if(!("ubuntu").equals(createContainerRequestDto.getOs()) ||
-         !("22.04").equals(createContainerRequestDto.getVersion())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "현재는 Ubuntu 22.04만 지원합니다.");
-        }
+        //TODO : 운영체제별, 버전별로 나누기 -> 추후 예정
 
         //Version이 비어있을 경우
         String os = createContainerRequestDto.getOs();
