@@ -1,4 +1,4 @@
-package com.hanbat.dotcar.container;
+package com.hanbat.dotcar.container.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CreateContainerResponseDto {
+public class ContainerInfoDto {
     private String containerId; //컨테이너 아이디
     private String port; //포트 번호
-
 }

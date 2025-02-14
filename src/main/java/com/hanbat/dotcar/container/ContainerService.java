@@ -4,6 +4,7 @@ package com.hanbat.dotcar.container;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
+import com.github.dockerjava.api.exception.DockerException;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
@@ -13,13 +14,14 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.transport.DockerHttpClient;
 import com.github.dockerjava.zerodep.ZerodepDockerHttpClient;
+import com.hanbat.dotcar.container.dto.ContainerInfoDto;
+import com.hanbat.dotcar.container.dto.CreateContainerRequestDto;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.io.LineIterator;
+import org.hibernate.exception.DataException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.print.Doc;
 import java.time.Duration;
 import java.util.Date;
 
@@ -53,13 +55,14 @@ public class ContainerService {
     /****** 컨테이너 생성 ********/
     /**************************/
     public ContainerInfoDto createContainer(CreateContainerRequestDto createContainerRequestDto){
-        //TODO : 이메일 검증
+        //TODO-SOON : 이메일 검증
         String userEmail = createContainerRequestDto.getUserEmail();
+
 
         //TODO : 운영체제별, 버전별로 나누기 -> 추후 예정
 
         //Version이 비어있을 경우
-        String os = createContainerRequestDto.getOs();
+        String os = createContainerRequestDto.getOs().toLowerCase(); //소문자만 취급하기에, 소문자로 바꾸기
         String version = (createContainerRequestDto.getVersion()) == null || createContainerRequestDto.getVersion().isEmpty()
                 ? "latest" : createContainerRequestDto.getVersion();
 
@@ -78,74 +81,91 @@ public class ContainerService {
                         .withTag(version)
                         .exec(new PullImageResultCallback())
                         .awaitCompletion();
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt(); // 현재 스레드 인터럽트 상태로 유지 -> 없으면 인터럽트가 발생했다는 인지 못하고 비정상적인 동작 발생 가능성
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Docker 이미지 다운로드 중 인터럽트 발생");
             } catch (Exception ex) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Docker 이미지 다운로드 실패", ex);
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Docker 이미지 다운로드 실패");
             }
         }
 
-        // ** 포트 바인딩 ** //
-        //컨테이너 내부 포트
-        ExposedPort containerPort = ExposedPort.tcp(22);
-
-        //호스트 포트 자동 할당
-        Ports portBindings = new Ports();
-
-        //컨테이너 내부 포트와 호스트 내부 포트 연결
-        portBindings.bind(containerPort, Ports.Binding.bindPort(0));
-
+        // ** 포트 바인딩 설정** //
+        ExposedPort containerPort = ExposedPort.tcp(22); //컨테이너 내부 포트
+        Ports portBindings = new Ports(); //호스트 포트 자동 할당
+        portBindings.bind(containerPort, Ports.Binding.bindPort(0));  //컨테이너 내부 포트와 호스트 내부 포트 연결
         HostConfig hostConfig = HostConfig.newHostConfig()
                 .withPortBindings(portBindings);
 
 
 
+
         // ** 컨테이너 생성 및 포트 바인딩** //
-        CreateContainerResponse containerResponse = dockerClient.createContainerCmd(imageName)
-                .withCmd("tail", "-f", "/dev/null")
-                .withExposedPorts(containerPort)
-                .withHostConfig(hostConfig)
-                .exec();
+        CreateContainerResponse containerResponse;
+        try{
+            containerResponse = dockerClient.createContainerCmd(imageName)
+                    .withCmd("tail", "-f", "/dev/null") // 컨테이너 생성 후 프로세스 유지(바로 꺼지지 않게 하기 위한 장치)
+                    .withExposedPorts(containerPort)
+                    .withHostConfig(hostConfig)
+                    .exec();
+        } catch (DockerException e){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "도커 컨테이너 생성 실패");
+        }
 
 
 
 
-        //컨테이너 아이디 가져오기
+        //** 컨테이너 실행 및 프로세스 유지 ** //
         String containerId = containerResponse.getId();
-        System.out.println("컨테이너 생성 완료: " + containerId);
+        try{
+            dockerClient.startContainerCmd(containerId).exec();
+        } catch (DockerException e){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "도커 컨테이너 실행 실패");
+        }
 
-        // 컨테이너 실행
-        dockerClient.startContainerCmd(containerId).exec();
-        System.out.println("컨테이너 실행 완료" + containerId);
 
-        String hostPort = dockerClient.inspectContainerCmd(containerId)
+
+        // ** 컨테이너 상태 및 포트 바인딩 조회 ** //
+        String containerName;
+        String status;
+        String hostPort;
+
+        try{
+
+        containerName = dockerClient.inspectContainerCmd(containerId).exec().getName();
+        status = dockerClient.inspectContainerCmd(containerId).exec().getState().getStatus();
+        hostPort = dockerClient.inspectContainerCmd(containerId)
                 .exec()                                  // InspectContainerResponse 반환
                 .getNetworkSettings()                    // 컨테이너의 네트워크 설정 가져오기
                 .getPorts()                              // 네트워크 설정에서 Ports 객체 가져오기
                 .getBindings()                           // Map<ExposedPort, Binding[]> 형태로 포트 바인딩 정보 가져오기
                 .get(containerPort)[0]                   // 특정 ExposedPort (예: 22/tcp)에 대한 첫 번째 Binding 선택
                 .getHostPortSpec();                      // 선택된 Binding에서 호스트에 할당된 포트 번호를 문자열로 반환
+        } catch (DockerException e){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "생성된 컨테이너 정보 조회 실패");
+        }
+
 
 
         // ** 데이터베이스에 저장 ** //
-        String containerName = dockerClient.inspectContainerCmd(containerId).exec().getName();
-        String status = dockerClient.inspectContainerCmd(containerId).exec().getState().getStatus();
-
-        Container container = Container.builder()
-                .containerId(containerId)
-                .containerName(containerName)
-                .os(os)
-                .version(version)
-                .createdAt(new Date())
-                .status(status)
-                .hostPort(hostPort)
-                .madeBy(userEmail)
-                .build();
-
-        containerRepository.save(container);
-        System.out.println("컨테이너 저장" + containerId);
-
+        try{
+            Container container = Container.builder()
+                    .containerId(containerId)
+                    .containerName(containerName)
+                    .os(os)
+                    .version(version)
+                    .createdAt(new Date())
+                    .status(status)
+                    .hostPort(hostPort)
+                    .madeBy(userEmail)
+                    .build();
+            containerRepository.save(container);
+        } catch (DataException e){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 저장 실패");
+        }
 
 
-        //컨테이너 아이디, 포트번호 return
+
+        // ** 컨테이너 아이디, 포트번호 return ** //
         ContainerInfoDto containerInfoDto = ContainerInfoDto.builder()
                 .containerId(containerId)
                 .port(hostPort)
@@ -153,7 +173,6 @@ public class ContainerService {
 
         return containerInfoDto;
 
-        //TODO : 예외 처리
     }
 
 

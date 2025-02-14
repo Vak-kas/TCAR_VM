@@ -1,12 +1,17 @@
 package com.hanbat.dotcar.container;
 
+import com.hanbat.dotcar.container.dto.ContainerFailResponseDto;
+import com.hanbat.dotcar.container.dto.ContainerInfoDto;
+import com.hanbat.dotcar.container.dto.CreateContainerRequestDto;
+import com.hanbat.dotcar.container.dto.CreateContainerResponseDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 
 @RestController
@@ -17,16 +22,20 @@ public class ContainerController {
 
 
     @PostMapping("/create")
-    public ResponseEntity<CreateContainerResponseDto> createContainer(@RequestBody CreateContainerRequestDto createContainerRequestDto){
-        ContainerInfoDto containerInfoDto = containerService.createContainer(createContainerRequestDto);
-
-        //TODO : 컨테이너 생성 실패 시에 나오는 예외처리
-        CreateContainerResponseDto createContainerResponseDto = CreateContainerResponseDto.builder()
-                .containerId(containerInfoDto.getContainerId())
-                .port(containerInfoDto.getPort())
-                .build();
-
-        return ResponseEntity.status(200).body(createContainerResponseDto);
+    public ResponseEntity<?> createContainer(@RequestBody CreateContainerRequestDto createContainerRequestDto){
+        try{
+            ContainerInfoDto containerInfoDto = containerService.createContainer(createContainerRequestDto);
+            CreateContainerResponseDto createContainerResponseDto = CreateContainerResponseDto.builder()
+                    .containerId(containerInfoDto.getContainerId())
+                    .port(containerInfoDto.getPort())
+                    .build();
+            return ResponseEntity.status(HttpStatus.CREATED).body(createContainerResponseDto);
+        } catch (ResponseStatusException e){
+            ContainerFailResponseDto containerFailResponseDto = ContainerFailResponseDto.builder()
+                    .message(e.getReason())
+                    .build();
+            return ResponseEntity.status(e.getStatusCode()).body(containerFailResponseDto);
+        }
 
 
 

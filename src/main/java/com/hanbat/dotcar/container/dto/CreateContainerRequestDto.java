@@ -1,4 +1,4 @@
-package com.hanbat.dotcar.container;
+package com.hanbat.dotcar.container.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
