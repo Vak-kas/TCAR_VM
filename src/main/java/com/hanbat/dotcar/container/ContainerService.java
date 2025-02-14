@@ -16,6 +16,7 @@ import com.github.dockerjava.transport.DockerHttpClient;
 import com.github.dockerjava.zerodep.ZerodepDockerHttpClient;
 import com.hanbat.dotcar.container.dto.ContainerInfoDto;
 import com.hanbat.dotcar.container.dto.CreateContainerRequestDto;
+import com.hanbat.dotcar.container.dto.DeleteContainerRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.DataException;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
 import java.util.Date;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -51,11 +53,10 @@ public class ContainerService {
     /**************************/
 
 
-    /**************************/
+
     /****** 컨테이너 생성 ********/
-    /**************************/
     public ContainerInfoDto createContainer(CreateContainerRequestDto createContainerRequestDto){
-        //TODO-SOON : 이메일 검증
+        //TODO-SOON : 사용자 검증, 생성 조건 여부 확인
         String userEmail = createContainerRequestDto.getUserEmail();
 
 
@@ -173,6 +174,66 @@ public class ContainerService {
 
         return containerInfoDto;
 
+    }
+
+
+    /****** 컨테이너 삭제 ********/
+    public String deleteContainer(DeleteContainerRequestDto deleteContainerRequestDto){
+
+        //TODO : ADMIN일 경우에는?
+        String userEmail = deleteContainerRequestDto.getUserEmail();
+        String containerId = deleteContainerRequestDto.getContainerId();
+
+
+        Optional<Container> findContainer = containerRepository.findByContainerId(containerId);
+
+        //컨테이너가 실제로 존재하는지 확인
+        if(findContainer.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 컨테이너가 존재하지 않습니다.");
+        }
+        Container container = findContainer.get();
+
+
+        //삭제 권한 여부 확인
+        if(!(container.getMadeBy()).equals(userEmail)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 컨테이너를 삭제할 권한이 없습니다.");
+        }
+
+
+        // Docker 컨테이너 상태 확인
+        String dbStatus = container.getStatus();
+        String dockerStatus;
+        try{
+            dockerStatus = dockerClient.inspectContainerCmd(containerId).exec().getState().getStatus();
+        } catch (NotFoundException e){
+            container.setStatus("deleted");
+            containerRepository.save(container);
+            return "존재하지 않은 컨테이너 입니다.";
+        }
+
+
+        // 컨테이너 종료
+        if("running".equals(dockerStatus)){
+            dockerClient.stopContainerCmd(containerId).exec();
+            container.setStatus("exited");
+            containerRepository.save(container);
+        }
+        else {
+            container.setStatus("exited");
+            containerRepository.save(container);
+        }
+
+
+        // 컨테이너 삭제
+        dockerClient.removeContainerCmd(containerId).exec();
+        container.setStatus("deleted");
+        containerRepository.save(container);
+
+
+
+
+
+        return "삭제가 완료되었습니다.";
     }
 
 

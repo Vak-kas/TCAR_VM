@@ -2,16 +2,14 @@ package com.hanbat.dotcar.container;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Date;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@Setter
 @Entity
 @Builder
 public class Container {
@@ -34,7 +32,5 @@ public class Container {
     private String hostPort;  // 컨테이너가 매핑된 호스트 포트 번호
 
     private String madeBy; //생성한 사람의 이메일
-
-
 
 }
