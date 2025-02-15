@@ -39,10 +39,15 @@ public class ContainerService {
     public ContainerInfoDto createContainer(CreateContainerRequestDto createContainerRequestDto){
 
         String userEmail = createContainerRequestDto.getUserEmail();
-        String role = validateService.getUserRole(userEmail);
 
-        // 생성 권한 화인
-        if(!validateService.createContainerUserPermission(userEmail,role)){
+        //백엔드로부터 유저 등급 가져오기
+        String role = validateService.getUserRole(userEmail);
+        if(role == null) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "유저 정보 확인에 실패하였습니다.");
+        }
+
+//        // 생성 권한 화인
+        if(!validateService.createContainerUserPermission(userEmail, role)){
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "컨테이너 생성 조건을 만족하지 못합니다.");
         }
 

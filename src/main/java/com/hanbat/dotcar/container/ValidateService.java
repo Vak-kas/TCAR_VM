@@ -12,16 +12,15 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class ValidateService {
+    private final ContainerRepository containerRepository;
+    private final WebClient webClient; //WebClientConfig에서 Bean 주입
+
+
     // Role별 최대 생성 가능 컨테이너 개수 설정
     private static final Map<String, Integer> ROLE_MAX_CONTAINERS = Map.of(
             "ADMIN", Integer.MAX_VALUE, // ADMIN은 무제한
             "BASIC", 1
-//            "PRO", 2,  // 예시: PRO 등급 추가
-//            "ENTERPRISE", 5 // 예시: ENTERPRISE 등급 추가
     );
-    private final ContainerRepository containerRepository;
-    private final WebClient webClient; //WebClientConfig에서 Bean 주입
-
 
 
     //*** 유저 권한(등급) 가져오기 ***//
@@ -60,11 +59,8 @@ public class ValidateService {
         //해당 유저 권한에 따른 최대 컨테이너 생성 개수
         int maxAllowedContainerCount = ROLE_MAX_CONTAINERS.get(role);
 
-
         //최대 생성 개수 안 넘었으면 true,넘었으면 false
         return maxAllowedContainerCount > runningContainerCount;
-
-
 
 
     }
