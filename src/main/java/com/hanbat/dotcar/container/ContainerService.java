@@ -32,6 +32,7 @@ import java.util.Optional;
 public class ContainerService {
     private final ContainerRepository containerRepository;
     private final ValidateService validateService;
+    private final ImageService imageService;
     private final DockerClient dockerClient;
 
 
@@ -51,35 +52,15 @@ public class ContainerService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "컨테이너 생성 조건을 만족하지 못합니다.");
         }
 
-        //TODO : 운영체제별, 버전별로 나누기 -> 추후 예정
-
         //Version이 비어있을 경우
         String os = createContainerRequestDto.getOs().toLowerCase(); //소문자만 취급하기에, 소문자로 바꾸기
         String version = (createContainerRequestDto.getVersion()) == null || createContainerRequestDto.getVersion().isEmpty()
                 ? "latest" : createContainerRequestDto.getVersion();
 
 
-        //TODO :  후에 도커 이미지를 따로 경량화 시켰을 경우 해당 이미지로 변경
+        // 이미지 불러오기
+        String imageName = imageService.getOrPullImage(os, version);
 
-        String imageName = os + ":" + version;
-
-        //이미지 존재 여부 확인하고, 없으면 다운로드
-        try {
-            dockerClient.inspectImageCmd(imageName).exec();
-        } catch (NotFoundException e) {
-            System.out.println("이미지가 없어서 다운로드 중...");
-            try {
-                dockerClient.pullImageCmd(os)
-                        .withTag(version)
-                        .exec(new PullImageResultCallback())
-                        .awaitCompletion();
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt(); // 현재 스레드 인터럽트 상태로 유지 -> 없으면 인터럽트가 발생했다는 인지 못하고 비정상적인 동작 발생 가능성
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Docker 이미지 다운로드 중 인터럽트 발생");
-            } catch (Exception ex) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Docker 이미지 다운로드 실패");
-            }
-        }
 
         // ** 포트 바인딩 설정** //
         ExposedPort containerPort = ExposedPort.tcp(22); //컨테이너 내부 포트
@@ -104,7 +85,6 @@ public class ContainerService {
 
 
 
-
         //** 컨테이너 실행 및 프로세스 유지 ** //
         String containerId = containerResponse.getId();
         try{
@@ -112,7 +92,6 @@ public class ContainerService {
         } catch (DockerException e){
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "도커 컨테이너 실행 실패");
         }
-
 
 
         // ** 컨테이너 상태 및 포트 바인딩 조회 ** //
