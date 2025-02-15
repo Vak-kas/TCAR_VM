@@ -42,15 +42,12 @@ public class ContainerService {
         String userEmail = createContainerRequestDto.getUserEmail();
 
         // 생성 권한 화인
-        if(!validateService.createContainerUserPermission(userEmail)){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "컨테이너 생성 조건을 만족하지 못합니다.");
-        }
+        validateService.createContainerUserPermission(userEmail);
 
         //Version이 비어있을 경우
         String os = createContainerRequestDto.getOs().toLowerCase(); //소문자만 취급하기에, 소문자로 바꾸기
         String version = (createContainerRequestDto.getVersion()) == null || createContainerRequestDto.getVersion().isEmpty()
                 ? "latest" : createContainerRequestDto.getVersion();
-
 
         // 이미지 불러오기
         String imageName = imageService.getOrPullImage(os, version);

@@ -49,14 +49,9 @@ public class ValidateService {
 
 
     // *** 해당 유저의 컨테이너 생성 조건 확인
-    public boolean createContainerUserPermission(String userEmail){
+    public void createContainerUserPermission(String userEmail){
 
         String role = getUserRole(userEmail);
-
-        // ADMIN이면 무조건 생성 가능
-        if("ADMIN".equals(role)){
-            return true;
-        }
 
         //해당 유저의 현재 실행중인 컨테이너 개수
         int runningContainerCount = containerRepository.countByMadeByAndStatus(userEmail, "running");
@@ -65,6 +60,8 @@ public class ValidateService {
         int maxAllowedContainerCount = ROLE_MAX_CONTAINERS.get(role);
 
         //최대 생성 개수 안 넘었으면 true,넘었으면 false -> 생성 가능하면 true, 생성 불가능하면 false
-        return maxAllowedContainerCount > runningContainerCount;
+        if(maxAllowedContainerCount <= runningContainerCount){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "컨테이너 생성 조건을 만족하지 못합니다.");
+        }
     }
 }
