@@ -41,8 +41,10 @@ public class ContainerService {
         String userEmail = createContainerRequestDto.getUserEmail();
         String role = validateService.getUserRole(userEmail);
 
-        //TODO : 생성 조건 여부 확인하기
-
+        // 생성 권한 화인
+        if(!validateService.createContainerUserPermission(userEmail,role)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "컨테이너 생성 조건을 만족하지 못합니다.");
+        }
 
         //TODO : 운영체제별, 버전별로 나누기 -> 추후 예정
 
@@ -80,7 +82,6 @@ public class ContainerService {
         portBindings.bind(containerPort, Ports.Binding.bindPort(0));  //컨테이너 내부 포트와 호스트 내부 포트 연결
         HostConfig hostConfig = HostConfig.newHostConfig()
                 .withPortBindings(portBindings);
-
 
 
 

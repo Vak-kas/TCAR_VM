@@ -7,4 +7,5 @@ import java.util.Optional;
 public interface ContainerRepository extends JpaRepository<Container, Long> {
     Optional<Container> findByContainerId(String ContainerId);
     Optional<Container> findByMadeBy(String MadeBy);
+    int countByMadeByAndStatus(String MadeBy, String status);
 }
