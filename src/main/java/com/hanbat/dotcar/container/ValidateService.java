@@ -38,16 +38,21 @@ public class ValidateService {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return (role != null && !role.isEmpty()) ? role : null;
+            if(role != null && role.isEmpty()){
+                return role;
+            }
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 유저가 존재하지 않습니다.");
         } catch (Exception e){
-//            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "유저 정보를 조회 실패");
-            return null;
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "유저 정보를 조회 실패");
         }
     }
 
 
     // *** 해당 유저의 컨테이너 생성 조건 확인
-    public boolean createContainerUserPermission(String userEmail, String role){
+    public boolean createContainerUserPermission(String userEmail){
+
+        String role = getUserRole(userEmail);
+
         // ADMIN이면 무조건 생성 가능
         if("ADMIN".equals(role)){
             return true;
@@ -59,9 +64,7 @@ public class ValidateService {
         //해당 유저 권한에 따른 최대 컨테이너 생성 개수
         int maxAllowedContainerCount = ROLE_MAX_CONTAINERS.get(role);
 
-        //최대 생성 개수 안 넘었으면 true,넘었으면 false
+        //최대 생성 개수 안 넘었으면 true,넘었으면 false -> 생성 가능하면 true, 생성 불가능하면 false
         return maxAllowedContainerCount > runningContainerCount;
-
-
     }
 }

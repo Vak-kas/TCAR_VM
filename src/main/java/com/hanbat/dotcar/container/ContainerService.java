@@ -41,14 +41,8 @@ public class ContainerService {
 
         String userEmail = createContainerRequestDto.getUserEmail();
 
-        //백엔드로부터 유저 등급 가져오기
-        String role = validateService.getUserRole(userEmail);
-        if(role == null) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "유저 정보 확인에 실패하였습니다.");
-        }
-
-//        // 생성 권한 화인
-        if(!validateService.createContainerUserPermission(userEmail, role)){
+        // 생성 권한 화인
+        if(!validateService.createContainerUserPermission(userEmail)){
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "컨테이너 생성 조건을 만족하지 못합니다.");
         }
 
@@ -70,7 +64,6 @@ public class ContainerService {
                 .withPortBindings(portBindings);
 
 
-
         // ** 컨테이너 생성 및 포트 바인딩** //
         CreateContainerResponse containerResponse;
         try{
@@ -84,7 +77,6 @@ public class ContainerService {
         }
 
 
-
         //** 컨테이너 실행 및 프로세스 유지 ** //
         String containerId = containerResponse.getId();
         try{
@@ -95,25 +87,20 @@ public class ContainerService {
 
 
         // ** 컨테이너 상태 및 포트 바인딩 조회 ** //
-        String containerName;
-        String status;
-        String hostPort;
-
+        String containerName, status, hostPort;
         try{
-
-        containerName = dockerClient.inspectContainerCmd(containerId).exec().getName();
-        status = dockerClient.inspectContainerCmd(containerId).exec().getState().getStatus();
-        hostPort = dockerClient.inspectContainerCmd(containerId)
-                .exec()                                  // InspectContainerResponse 반환
-                .getNetworkSettings()                    // 컨테이너의 네트워크 설정 가져오기
-                .getPorts()                              // 네트워크 설정에서 Ports 객체 가져오기
-                .getBindings()                           // Map<ExposedPort, Binding[]> 형태로 포트 바인딩 정보 가져오기
-                .get(containerPort)[0]                   // 특정 ExposedPort (예: 22/tcp)에 대한 첫 번째 Binding 선택
-                .getHostPortSpec();                      // 선택된 Binding에서 호스트에 할당된 포트 번호를 문자열로 반환
+            containerName = dockerClient.inspectContainerCmd(containerId).exec().getName();
+            status = dockerClient.inspectContainerCmd(containerId).exec().getState().getStatus();
+            hostPort = dockerClient.inspectContainerCmd(containerId)
+                    .exec()                                  // InspectContainerResponse 반환
+                    .getNetworkSettings()                    // 컨테이너의 네트워크 설정 가져오기
+                    .getPorts()                              // 네트워크 설정에서 Ports 객체 가져오기
+                    .getBindings()                           // Map<ExposedPort, Binding[]> 형태로 포트 바인딩 정보 가져오기
+                    .get(containerPort)[0]                   // 특정 ExposedPort (예: 22/tcp)에 대한 첫 번째 Binding 선택
+                    .getHostPortSpec();                      // 선택된 Binding에서 호스트에 할당된 포트 번호를 문자열로 반환
         } catch (DockerException e){
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "생성된 컨테이너 정보 조회 실패");
         }
-
 
 
         // ** 데이터베이스에 저장 ** //
@@ -134,16 +121,14 @@ public class ContainerService {
         }
 
 
-
         // ** 컨테이너 아이디, 포트번호 return ** //
         ContainerInfoDto containerInfoDto = ContainerInfoDto.builder()
                 .containerId(containerId)
                 .port(hostPort)
                 .build();
-
         return containerInfoDto;
-
     }
+
 
 
     /****** 컨테이너 삭제 ********/
