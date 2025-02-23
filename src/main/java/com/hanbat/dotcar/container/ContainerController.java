@@ -31,6 +31,7 @@ public class ContainerController {
         }
 
     }
+
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteContainer(@RequestBody DeleteContainerRequestDto deleteContainerRequestDto) {
         try {
@@ -38,7 +39,7 @@ public class ContainerController {
             DeleteContainerResponseDto deleteContainerResponseDto = DeleteContainerResponseDto.builder()
                     .message(resultMessage)
                     .build();
-            return ResponseEntity.status(HttpStatus.OK).body(deleteContainerRequestDto);
+            return ResponseEntity.status(HttpStatus.OK).body(deleteContainerResponseDto);
         } catch (ResponseStatusException e) {
             ContainerFailResponseDto errorResponse = ContainerFailResponseDto.builder()
                     .message(e.getReason())
