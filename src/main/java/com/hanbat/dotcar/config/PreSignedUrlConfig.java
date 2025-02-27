@@ -6,10 +6,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class PreSignedUrlConfig {
 
-    @Value("${pre-signed.url}")
-    private String preSignedUrl;
+    @Value("${pre-signed.url}")  // pre_signed_url 값을 가져옴 (JWT 검증 키)
+    private String SECRET_KEY;
 
-    public String getPreSignedUrl() {
-        return preSignedUrl;
+    public String getSecretKey() {
+        return SECRET_KEY;
     }
 }
