@@ -44,6 +44,11 @@ dependencies {
 //	implementation 'com.github.docker-java:docker-java-transport-okhttp:3.4.1'
 	implementation 'com.github.docker-java:docker-java-transport-zerodep:3.4.1'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+	implementation 'io.jsonwebtoken:jjwt-impl:0.12.6'
+	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+
 }
 
 tasks.named('test') {
