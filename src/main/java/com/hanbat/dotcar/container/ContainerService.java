@@ -168,19 +168,24 @@ public class ContainerService {
     public void syncContainerStatus(Container container){
         // Docker 컨테이너 상태 확인
         String containerId = container.getContainerId();
-        String dockerStatus;
-        try{
-            dockerStatus = dockerClient.inspectContainerCmd(containerId).exec().getState().getStatus();
+        String dockerStatus = getContainerStatus(containerId); // getContainerStatus 활용
 
-            if (!container.getStatus().equals(dockerStatus)){
-                container.setStatus(dockerStatus);
-                containerRepository.save(container);
-            }
-        } catch (NotFoundException e){
-            //도커 컨테이너가 현재 실행중이지 않다면?
-            dockerStatus = "deleted";
+        if (!container.getStatus().equals(dockerStatus)) {
             container.setStatus(dockerStatus);
             containerRepository.save(container);
         }
+    }
+
+    // *** 컨테이너 상태 확인
+    public String getContainerStatus(String containerId){
+        try {
+            String dockerStatus = dockerClient.inspectContainerCmd(containerId).exec().getState().getStatus();
+            return dockerStatus;
+        } catch (NotFoundException e){
+            return "deleted";
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "컨테이너의 상태를 확인할 수 없습니다.");
+        }
+
     }
 }
