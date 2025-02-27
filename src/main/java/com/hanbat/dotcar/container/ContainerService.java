@@ -48,7 +48,7 @@ public class ContainerService {
 
 
         // ** 포트 바인딩 설정** //
-        ExposedPort containerPort = ExposedPort.tcp(22); //컨테이너 내부 포트
+        ExposedPort containerPort = ExposedPort.tcp(80); //컨테이너 내부 포트
         Ports portBindings = new Ports(); //호스트 포트 자동 할당
         portBindings.bind(containerPort, Ports.Binding.bindPort(0));  //컨테이너 내부 포트와 호스트 내부 포트 연결
         HostConfig hostConfig = HostConfig.newHostConfig()
@@ -59,7 +59,8 @@ public class ContainerService {
         CreateContainerResponse containerResponse;
         try{
             containerResponse = dockerClient.createContainerCmd(imageName)
-                    .withCmd("tail", "-f", "/dev/null") // 컨테이너 생성 후 프로세스 유지(바로 꺼지지 않게 하기 위한 장치)
+//                    .withCmd("tail", "-f", "/dev/null") // 컨테이너 생성 후 프로세스 유지(바로 꺼지지 않게 하기 위한 장치)
+//                    .withCmd("apachectl", "-D", "FOREGROUND") // Apache 실행 명령어로 변경
                     .withExposedPorts(containerPort)
                     .withHostConfig(hostConfig)
                     .exec();

@@ -14,7 +14,7 @@ public class ImageService {
     private final DockerClient dockerClient;
 
     public String getOrPullImage(String os, String version){
-        String imageName = os + ":" + version;
+        String imageName = "romanseo/" + os + ":" + version;
         //이미지 존재 여부 확인하고, 없으면 다운로드
         try {
             dockerClient.inspectImageCmd(imageName).exec();
