@@ -1,4 +1,5 @@
 package com.hanbat.dotcar.access;
+import com.hanbat.dotcar.container.Container;
 import com.hanbat.dotcar.container.ContainerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,9 +22,11 @@ public class AccessService {
         String userEmail = claims.get("userEmail");
 
 
-        //TODO : 컨테이너 실행중인지 확인
+        //컨테이너 실행중인지 확인
         String dockerStatus = containerService.getContainerStatus(containerId);
         if(!dockerStatus.equals("running")){
+            Container container = containerService.getContainer(containerId);
+            containerService.syncContainerStatus(container);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 컨테이너가 실행 중이지 않습니다.");
         }
 
