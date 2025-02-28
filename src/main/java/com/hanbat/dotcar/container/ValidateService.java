@@ -33,7 +33,7 @@ public class ValidateService {
     //*** 유저 권한(등급) 가져오기 ***//
     //         -> 유저 존재 여부 확인
     public String getUserRole(String userEmail){
-        String URL = "/api/user-role";  // -> URL 백엔드에서 받아온 정보 넣기
+        String URL = "/api/users/role";  // -> URL 백엔드에서 받아온 정보 넣기
         String role;
         try {
             role = webClient.get() //GET 요청
