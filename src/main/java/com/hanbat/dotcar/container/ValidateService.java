@@ -1,6 +1,7 @@
 package com.hanbat.dotcar.container;
 
 import com.github.dockerjava.api.exception.NotFoundException;
+import com.hanbat.dotcar.container.dto.UserRoleResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -34,17 +35,19 @@ public class ValidateService {
     //         -> 유저 존재 여부 확인
     public String getUserRole(String userEmail){
         String URL = "/api/users/role";  // -> URL 백엔드에서 받아온 정보 넣기
-        String role;
+        UserRoleResponseDto userRoleResponseDto;
         try {
-            role = webClient.get() //GET 요청
+            userRoleResponseDto = webClient.get() //GET 요청
                     .uri(uriBuilder ->
                             uriBuilder
                                     .path(URL) //상대경로 설정
                                     .queryParam("email", userEmail) //쿼리 설정
                                     .build())
                     .retrieve()
-                    .bodyToMono(String.class)
+                    .bodyToMono(UserRoleResponseDto.class)
                     .block();
+
+            String role = userRoleResponseDto.getRole();
             if (role == null || role.isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 유저가 존재하지 않습니다.");
             }
