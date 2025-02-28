@@ -188,4 +188,13 @@ public class ContainerService {
         }
 
     }
+
+    public Container getContainer(String containerId){
+        Optional<Container> optionalContainer = containerRepository.findByContainerId(containerId);
+        if(optionalContainer.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 컨테이너가 존재하지 않습니다.");
+        }
+        Container container = optionalContainer.get();
+        return container;
+    }
 }

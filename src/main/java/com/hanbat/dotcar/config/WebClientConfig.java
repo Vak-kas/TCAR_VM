@@ -6,7 +6,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 public class WebClientConfig {
-    private static final String BACKEND_SERVER_IP = "https://127.0.0.1/";
+    private static final String BACKEND_SERVER_IP = "http://192.168.1.10:8080/";
 
     @Bean
     public WebClient webClient() {
