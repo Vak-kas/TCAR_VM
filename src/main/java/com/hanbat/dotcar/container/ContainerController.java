@@ -1,5 +1,6 @@
 package com.hanbat.dotcar.container;
 
+import com.hanbat.dotcar.access.AccessService;
 import com.hanbat.dotcar.container.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("api/container")
 public class ContainerController {
     private final ContainerService containerService;
+    private final AccessService accessService;
 
     @PostMapping("/create")
     public ResponseEntity<?> createContainer(@RequestBody CreateContainerRequestDto createContainerRequestDto){

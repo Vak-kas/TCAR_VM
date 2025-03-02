@@ -8,6 +8,7 @@ import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Ports;
+import com.hanbat.dotcar.access.AccessAuthorityService;
 import com.hanbat.dotcar.container.dto.ContainerInfoDto;
 import com.hanbat.dotcar.container.dto.CreateContainerRequestDto;
 import com.hanbat.dotcar.container.dto.DeleteContainerRequestDto;
@@ -26,6 +27,7 @@ public class ContainerService {
     private final ValidateService validateService;
     private final ImageService imageService;
     private final DockerClient dockerClient;
+    private final AccessAuthorityService accessAuthorityService;
 
 
     /****** 컨테이너 생성 ********/
@@ -107,11 +109,16 @@ public class ContainerService {
                     .hostPort(hostPort)
                     .madeBy(userEmail)
                     .build();
-            containerRepository.save(container);
+            container = containerRepository.save(container);
+
+            //접근 권한 설정
+            accessAuthorityService.setAuthority(container, userEmail);
+
         } catch (DataException e) {
             dockerClient.removeContainerCmd(containerId).exec(); // DB 저장 실패 시 컨테이너 삭제
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 저장 실패");
         }
+
 
 
         // ** 컨테이너 아이디, 포트번호 return ** //
