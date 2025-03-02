@@ -81,7 +81,7 @@ public class ContainerService {
         // ** 컨테이너 상태 및 포트 바인딩 조회 ** //
         String containerName, status, hostPort;
         try{
-            containerName = dockerClient.inspectContainerCmd(containerId).exec().getName();
+            containerName = dockerClient.inspectContainerCmd(containerId).exec().getName().replace("/", "");
             status = dockerClient.inspectContainerCmd(containerId).exec().getState().getStatus();
             hostPort = dockerClient.inspectContainerCmd(containerId)
                     .exec()                                  // InspectContainerResponse 반환
@@ -108,7 +108,8 @@ public class ContainerService {
                     .madeBy(userEmail)
                     .build();
             containerRepository.save(container);
-        } catch (DataException e){
+        } catch (DataException e) {
+            dockerClient.removeContainerCmd(containerId).exec(); // DB 저장 실패 시 컨테이너 삭제
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 저장 실패");
         }
 
