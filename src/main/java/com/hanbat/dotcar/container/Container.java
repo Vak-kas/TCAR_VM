@@ -1,10 +1,12 @@
 package com.hanbat.dotcar.container;
 
 
+import com.hanbat.dotcar.access.AccessAuthority;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Date;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -32,5 +34,11 @@ public class Container {
     private String hostPort;  // 컨테이너가 매핑된 호스트 포트 번호
 
     private String madeBy; //생성한 사람의 이메일
+
+
+
+    // 해당 컨테이너에 접근할 수 있는 사용자 목록(양방향)
+    @OneToMany(mappedBy = "container", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AccessAuthority> accessAuthorityList;
 
 }

@@ -12,6 +12,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class AccessService {
+    private final String myServer = "http://localhost:";
     private final URLValidateService URLValidateService;
     private final ContainerService containerService;
 
@@ -33,7 +34,7 @@ public class AccessService {
         //TODO : 컨테이너 접근 권한 있는지 확인
 
 
-        return "http://localhost:" + port;
+        return myServer + port;
 
 
     }

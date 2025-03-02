@@ -28,6 +28,7 @@ public class URLValidateService {
     //*** TOKEN 검증 및 payload return
     public Map<String, String> getClaimsFromToken(String token){
         try{
+            System.out.println(token);
             Claims claims = Jwts.parser()
                     .verifyWith(SECRET_KEY)
                     .build()
@@ -35,9 +36,9 @@ public class URLValidateService {
                     .getPayload();
 
             return Map.of(
-                    "containerId", claims.get("containerId", String.class),
+                    "userEmail", claims.getSubject(),
                     "port", claims.get("port", String.class),
-                    "userEmail", claims.get("userEmail", String.class)
+                    "containerId", claims.get("containerId", String.class)
             );
         } catch (ExpiredJwtException e){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다.");

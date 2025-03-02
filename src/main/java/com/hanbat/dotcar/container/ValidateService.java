@@ -26,14 +26,14 @@ public class ValidateService {
 
 
     //테스트용
-//    public String getUserRole(String userEmail){
-//        return "BASIC";
-//    }
+    public String getUserRole(String userEmail){
+        return "BASIC";
+    }
 
 
     //*** 유저 권한(등급) 가져오기 ***//
     //         -> 유저 존재 여부 확인
-    public String getUserRole(String userEmail){
+    public String getUserRole2(String userEmail){
         String URL = "/api/users/role";  // -> URL 백엔드에서 받아온 정보 넣기
         UserRoleResponseDto userRoleResponseDto;
         try {
