@@ -1,4 +1,5 @@
 package com.hanbat.dotcar.access;
+import com.hanbat.dotcar.access.dto.AccessibleContainerDto;
 import com.hanbat.dotcar.container.Container;
 import com.hanbat.dotcar.container.ContainerService;
 import lombok.RequiredArgsConstructor;
@@ -8,9 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.stereotype.Service;
 
 import java.awt.event.ContainerAdapter;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +20,8 @@ public class AccessService {
     private final AccessRepository accessRepository;
     private final AccessAuthorityService accessAuthorityService;
 
+
+    // *** 컨테이너 접근하기 *** //
     public String accessContainer(String token){
         Map<String, String> claims = URLValidateService.getClaimsFromToken(token);
         String containerId = claims.get("containerId");
@@ -45,6 +46,31 @@ public class AccessService {
         }
 
         return myServer + port;
+    }
+
+
+    // *** 접근 가능한 컨테이너 목록 조회하기 *** //
+    public List<AccessibleContainerDto> getAccessibleContainers(String userEmail){
+        List<Container> containers = accessRepository.findAccessibleRunningContainersByUserEmail(userEmail);
+        if(containers.isEmpty()){
+            return Collections.EMPTY_LIST;
+        }
+        List<AccessibleContainerDto> result = new ArrayList<>();
+
+        for (Container container : containers){
+            String accessType = container.getMadeBy().equals(userEmail) ? "owner" : "guest";
+            AccessibleContainerDto accessibleContainerDto = AccessibleContainerDto.builder()
+                    .containerId(container.getContainerId())
+                    .containerName(container.getContainerName())
+                    .port(container.getHostPort())
+                    .accessType(accessType)
+                    .build();
+
+            result.add(accessibleContainerDto);
+        }
+
+        return result;
+
     }
 
 
