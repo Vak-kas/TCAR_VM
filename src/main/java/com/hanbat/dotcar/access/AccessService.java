@@ -14,7 +14,8 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class AccessService {
-    private final String myServer = "http://localhost:";
+//    private final String myServer = "http://localhost:";
+    private final String myServer = "http://192.168.1.5:";
     private final URLValidateService URLValidateService;
     private final ContainerService containerService;
     private final AccessRepository accessRepository;
