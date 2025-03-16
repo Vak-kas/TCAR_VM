@@ -16,10 +16,10 @@ public class Pod {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String podName; // pod 이름
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String podNamespace;
 
     @Column(nullable = false)
