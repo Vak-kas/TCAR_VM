@@ -46,6 +46,11 @@ dependencies {
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
 	implementation 'org.apache.httpcomponents.client5:httpclient5'
 
+	implementation 'com.github.docker-java:docker-java:3.4.1'
+//	implementation 'com.github.docker-java:docker-java-transport-httpclient5:3.4.1'
+//	implementation 'com.github.docker-java:docker-java-transport-okhttp:3.4.1'
+	implementation 'com.github.docker-java:docker-java-transport-zerodep:3.4.1'
+
 }
 
 tasks.named('test') {

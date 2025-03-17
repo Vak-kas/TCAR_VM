@@ -1,0 +1,70 @@
+package com.hanbat.dotcar.kubernetes.service;
+
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.PullImageResultCallback;
+import com.github.dockerjava.api.exception.NotFoundException;
+import com.hanbat.dotcar.kubernetes.Image;
+import com.hanbat.dotcar.kubernetes.repository.ImageRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class ImageService {
+    private static final String DEFAULT_IMAGE_REPOSITORY = "";
+
+    private final ImageRepository imageRepository;
+    private final DockerClient dockerClient;
+
+
+    public String getImage(String os, String version) {
+        if (version == null || version.isEmpty()){
+            version = "latest";
+        }
+
+        String imageName = DEFAULT_IMAGE_REPOSITORY + os + ":" + version;
+
+
+        if(isImageHistory(imageName)){
+            return imageName;
+        }
+        if(getOrPullImage(imageName)){
+            return imageName;
+        }
+        throw new RuntimeException(os + ":" + version + " 이미지를 찾을 수 없습니다.");
+    }
+
+    private boolean isImageHistory(String imageName){
+        Optional<Image> image = imageRepository.findByImageName(imageName);
+        if(image.isPresent()){
+            return true;
+        }
+        return false;
+    }
+
+    private boolean getOrPullImage(String imageName) {
+        //이미지 존재 여부 확인하고, 없으면 다운로드
+        try {
+            dockerClient.inspectImageCmd(imageName).exec();
+            return true;
+        } catch (NotFoundException e) {
+            System.out.println("이미지가 없어서 다운로드 중...");
+            try {
+                dockerClient.pullImageCmd(imageName)
+//                        .withTag(version)
+                        .exec(new PullImageResultCallback())
+                        .awaitCompletion();
+                return true;
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt(); // 현재 스레드 인터럽트 상태로 유지 -> 없으면 인터럽트가 발생했다는 인지 못하고 비정상적인 동작 발생 가능성
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Docker 이미지 다운로드 중 인터럽트 발생");
+            } catch (Exception ex) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Docker 이미지 다운로드 실패");
+            }
+        }
+    }
+}
