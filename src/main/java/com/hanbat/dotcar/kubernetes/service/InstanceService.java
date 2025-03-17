@@ -7,7 +7,9 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,12 +21,21 @@ public class InstanceService {
     private final PodRepository podRepository;
     private final ImageService imageService;
     private final CoreV1Api coreV1Api;
+    private final ValidateService validateService;
 
     public PodInfoDto createPod(CreatePodRequestDto requestDto) throws ApiException{
         String os = requestDto.getOs();
         String version = requestDto.getVersion();
+        String userEmail = requestDto.getUserEmail();
         String namespace = "default";
         String podName = "pod-" + UUID.randomUUID().toString().substring(0, 8);
+
+        // 생성 권한 확인
+        if(!validateService.createPodUserPermission(userEmail)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "서버 생성 조건을 만족하지 못합니다.");
+        }
+
+        //TODO : Pod 생성 Service로 넘기기
 
         //컨테이너 사양
         V1Container v1Container = new V1Container()
@@ -49,6 +60,11 @@ public class InstanceService {
 
         // ✅ CoreV1Api를 사용하여 Pod 생성
         coreV1Api.createNamespacedPod(namespace, pod).execute();
+
+
+        //TODO : 포트번호
+
+        //TODO : 데이터베이스 저장
 
 
         PodInfoDto podInfoDto = PodInfoDto.builder()

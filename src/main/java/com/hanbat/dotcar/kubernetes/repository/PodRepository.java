@@ -4,4 +4,5 @@ import com.hanbat.dotcar.kubernetes.Pod;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PodRepository extends JpaRepository<Pod, Long> {
+    int countByMadeByAndStatus(String userEmail, String status);
 }

@@ -29,15 +29,24 @@ public class ImageService {
         String imageName = DEFAULT_IMAGE_REPOSITORY + os + ":" + version;
 
 
+        //과거 사용 내역 확인
         if(isImageHistory(imageName)){
             return imageName;
         }
+
+        //이미지 불러오기
         if(getOrPullImage(imageName)){
+            Image image = Image.builder()
+                    .imageName(imageName)
+                    .build();
+            imageRepository.save(image);
             return imageName;
         }
-        throw new RuntimeException(os + ":" + version + " 이미지를 찾을 수 없습니다.");
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,  os + ":" + version + " 이미지를 찾을 수 없습니다.");
     }
 
+
+    //*** 과거 사용 내역 확인 ***//
     private boolean isImageHistory(String imageName){
         Optional<Image> image = imageRepository.findByImageName(imageName);
         if(image.isPresent()){
@@ -46,6 +55,8 @@ public class ImageService {
         return false;
     }
 
+
+    //*** 이미지 불러오기 ***//
     private boolean getOrPullImage(String imageName) {
         //이미지 존재 여부 확인하고, 없으면 다운로드
         try {
