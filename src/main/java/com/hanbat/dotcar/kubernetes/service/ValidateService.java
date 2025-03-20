@@ -1,15 +1,18 @@
 package com.hanbat.dotcar.kubernetes.service;
 
+import com.hanbat.dotcar.kubernetes.domain.PodStatus;
 import com.hanbat.dotcar.kubernetes.dto.UserRoleResponseDto;
 import com.hanbat.dotcar.kubernetes.repository.PodRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 
 @RequiredArgsConstructor
+@Service
 public class ValidateService {
     private final WebClient webClient;
     private final PodRepository podRepository;
@@ -22,12 +25,12 @@ public class ValidateService {
 
 
     //테스트용
-    public String getUserRole2(String userEmail){
+    public String getUserRole(String userEmail){
         return "BASIC";
     }
     //*** 유저 권한(등급) 가져오기 ***//
     //         -> 유저 존재 여부 확인
-    public String getUserRole(String userEmail){
+    public String getUserRole2(String userEmail){
         String URL = "/api/users/role";  // -> URL 백엔드에서 받아온 정보 넣기
         UserRoleResponseDto userRoleResponseDto;
         try {
@@ -57,7 +60,7 @@ public class ValidateService {
         String role = getUserRole(userEmail);
 
         //해당 유저의 현재 실행중인 컨테이너 개수
-        int runningContainerCount = podRepository.countByMadeByAndStatus(userEmail, "running");
+        int runningContainerCount = podRepository.countByUserEmailAndStatus(userEmail, PodStatus.RUNNING);
 
         //해당 유저 권한에 따른 최대 컨테이너 생성 개수
         int maxAllowedContainerCount = ROLE_MAX_CONTAINERS.get(role);

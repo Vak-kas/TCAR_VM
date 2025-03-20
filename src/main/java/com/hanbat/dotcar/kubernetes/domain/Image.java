@@ -1,4 +1,4 @@
-package com.hanbat.dotcar.kubernetes;
+package com.hanbat.dotcar.kubernetes.domain;
 
 import jakarta.persistence.*;
 import lombok.*;

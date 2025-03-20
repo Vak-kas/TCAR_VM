@@ -1,4 +1,4 @@
-package com.hanbat.dotcar.kubernetes;
+package com.hanbat.dotcar.kubernetes.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -33,7 +33,7 @@ public class Pod {
     @Enumerated(EnumType.STRING)
     private PodStatus status; // pod 상태
 
-    private String servicePort;  //외부 노출된 포트
+    private String ingress;  //외부 노출된 포트
 
     @Column(nullable = false)
     private String userEmail; //생성한 사람의 이메일

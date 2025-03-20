@@ -1,5 +1,7 @@
 package com.hanbat.dotcar.kubernetes.service;
 
+import com.hanbat.dotcar.kubernetes.domain.Pod;
+import com.hanbat.dotcar.kubernetes.domain.PodStatus;
 import com.hanbat.dotcar.kubernetes.repository.PodRepository;
 import com.hanbat.dotcar.kubernetes.dto.CreatePodRequestDto;
 import com.hanbat.dotcar.kubernetes.dto.PodInfoDto;
@@ -13,12 +15,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
 public class InstanceService {
-    private final PodRepository podRepository;
     private final ImageService imageService;
     private final CoreV1Api coreV1Api;
     private final ValidateService validateService;
@@ -50,27 +52,43 @@ public class InstanceService {
                 .containers(Collections.singletonList(v1Container))
                 .overhead(null);
 
+        String userRole = validateService.getUserRole(userEmail);
+        //Pod metaData
+        V1ObjectMeta v1ObjectMeta = new V1ObjectMeta()
+                .name(podName)
+                .namespace(namespace)
+                .labels(Collections.singletonMap("role", userRole));
+
+
 
         //pod 생성
         V1Pod pod = new V1Pod()
                 .apiVersion("v1")
                 .kind("Pod")
-                .metadata(new V1ObjectMeta().name(podName).namespace(namespace))
+                .metadata(v1ObjectMeta)
                 .spec(v1PodSpec);
 
-        // ✅ CoreV1Api를 사용하여 Pod 생성
+        // CoreV1Api를 사용하여 Pod 생성
+        //TODO: 예외 처리
         coreV1Api.createNamespacedPod(namespace, pod).execute();
 
 
-        //TODO : 포트번호
-
         //TODO : 데이터베이스 저장
+        Pod dbPod = Pod.builder()
+                .podName(podName)
+                .podNamespace(namespace)
+                .os(os)
+                .version(version)
+                .createdAt(new Date())
+                .userEmail(userEmail)
+                .ingress("N/A") //TODO: ingress값 생성후에 집어넣기
+                .status(PodStatus.RUNNING) //TODO: 실제 방금 생성한 Pod의 상태 집어넣을 것
+                .build();
 
 
         PodInfoDto podInfoDto = PodInfoDto.builder()
                 .podName(podName)
                 .podNamespace(namespace)
-                .servicePort("N/A")
                 .build();
 
 

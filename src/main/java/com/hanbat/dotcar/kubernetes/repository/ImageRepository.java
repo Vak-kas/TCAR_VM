@@ -1,7 +1,6 @@
 package com.hanbat.dotcar.kubernetes.repository;
 
-import com.hanbat.dotcar.kubernetes.Image;
-import com.hanbat.dotcar.kubernetes.Pod;
+import com.hanbat.dotcar.kubernetes.domain.Image;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

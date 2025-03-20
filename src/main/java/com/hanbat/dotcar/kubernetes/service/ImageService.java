@@ -3,7 +3,7 @@ package com.hanbat.dotcar.kubernetes.service;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.exception.NotFoundException;
-import com.hanbat.dotcar.kubernetes.Image;
+import com.hanbat.dotcar.kubernetes.domain.Image;
 import com.hanbat.dotcar.kubernetes.repository.ImageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

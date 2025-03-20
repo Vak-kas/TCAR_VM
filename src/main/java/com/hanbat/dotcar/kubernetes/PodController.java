@@ -25,12 +25,10 @@ public class PodController {
     @PostMapping("/create")
     public ResponseEntity<?> createContainer(@RequestBody CreatePodRequestDto createPodRequestDto) {
         try {
-
             PodInfoDto podInfoDto = instanceService.createPod(createPodRequestDto);
             CreatePodResponseDto createPodResponseDto = CreatePodResponseDto.builder()
                     .podName(podInfoDto.getPodName())
                     .podNamespace(podInfoDto.getPodNamespace())
-                    .servicePort(podInfoDto.getServicePort())
                     .build();
             return ResponseEntity.status(HttpStatus.CREATED).body(createPodResponseDto);
         } catch (ResponseStatusException e) {
