@@ -38,7 +38,7 @@ spec:
     - host: tcar.admin.connect.com
       http:
         paths:
-          - path: "/{userEmail}/{namespace}/{podName}/{token}"
+          - path: "/"
             pathType: Prefix
             backend:
               service:
@@ -46,10 +46,11 @@ spec:
                 port:
                   number: 80
 
+
     - host: tcar.basic.connection.com
       http:
         paths:
-          - path: "/{userEmail}/{namespace}/{podName}"
+          - path: "/"
             pathType: Prefix
             backend:
               service:

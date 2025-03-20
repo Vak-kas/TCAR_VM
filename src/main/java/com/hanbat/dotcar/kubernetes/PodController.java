@@ -25,7 +25,7 @@ public class PodController {
     @PostMapping("/create")
     public ResponseEntity<?> createContainer(@RequestBody CreatePodRequestDto createPodRequestDto) {
         try {
-            PodInfoDto podInfoDto = instanceService.createPod(createPodRequestDto);
+            PodInfoDto podInfoDto = instanceService.createInstance(createPodRequestDto);
             CreatePodResponseDto createPodResponseDto = CreatePodResponseDto.builder()
                     .podName(podInfoDto.getPodName())
                     .podNamespace(podInfoDto.getPodNamespace())

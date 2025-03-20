@@ -1,0 +1,119 @@
+package com.hanbat.dotcar.kubernetes.service;
+
+import com.hanbat.dotcar.kubernetes.domain.PodStatus;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.*;
+import io.kubernetes.client.simplified.Pods;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Locale;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class PodService {
+    private final ImageService imageService;
+    private final ValidateService validateService;
+    private final CoreV1Api coreV1Api;
+
+
+    public V1Pod createPodSpec(String os, String version, String userEmail){
+        String namespace = "default";
+        String podName = "pod-" + UUID.randomUUID().toString().substring(0, 8);
+
+        //컨테이너 사양
+        V1Container v1Container = new V1Container()
+                .name(podName)
+                .image(imageService.getImage(os, version))
+                .ports(Collections.singletonList(new V1ContainerPort().containerPort(80)))
+                .command(Collections.singletonList("/bin/bash"))
+                .args(Arrays.asList("-c", "while true; do sleep 30; done"));
+
+        //Pod 사양
+        V1PodSpec v1PodSpec = new V1PodSpec()
+                .containers(Collections.singletonList(v1Container))
+                .overhead(null);
+
+        String userRole = validateService.getUserRole(userEmail);
+        //Pod metaData
+        V1ObjectMeta v1ObjectMeta = new V1ObjectMeta()
+                .name(podName)
+                .namespace(namespace)
+                .labels(Collections.singletonMap("role", userRole));
+
+        //pod 객체 생성
+        V1Pod pod = new V1Pod()
+                .apiVersion("v1")
+                .kind("Pod")
+                .metadata(v1ObjectMeta)
+                .spec(v1PodSpec);
+
+
+        //pod 객체로 Pod 생성
+        try{
+            coreV1Api.createNamespacedPod(namespace, pod).execute();
+        } catch (ApiException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "서버 생성 중 오류 발생");
+        } catch (Exception e){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "서버 생성 중 알 수 없는 오류 발생");
+        }
+
+        return pod;
+    }
+
+
+    //*** Pod의 상태 가져오기 ***//
+    public PodStatus getPodStatus(V1Pod pod){
+        V1Pod updatedPod;
+        try {
+            updatedPod = coreV1Api.readNamespacedPod(
+                    pod.getMetadata().getName(), pod.getMetadata().getNamespace()).execute();
+        } catch (ApiException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "최신 정보 조회 실패");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 오류");
+        }
+
+        if (updatedPod.getStatus() == null || updatedPod.getStatus().getPhase() == null) {
+            return PodStatus.UNKNOWN; // 기본값 반환
+        }
+
+        String phase = updatedPod.getStatus().getPhase().toUpperCase();
+        PodStatus podStatus;
+        if(phase == null){
+            return PodStatus.UNKNOWN;
+        }
+        switch (phase.toUpperCase()){
+            case "PENDING":
+                podStatus = PodStatus.PENDING;
+                break;
+            case "RUNNING":
+                podStatus = PodStatus.RUNNING;
+                break;
+            case "SUCCEEDED" :
+                podStatus = PodStatus.SUCCEEDED;
+                break;
+            case "FAILED" :
+                podStatus = PodStatus.FAILED;
+                break;
+            default :
+                podStatus = PodStatus.UNKNOWN;
+                break;
+        };
+        return podStatus;
+    }
+
+
+//    //*** namespace와 podName으로 V1Pod 객체 가져오기 ***//
+//    public V1Pod getV1Pod(String namespace, String podName){
+//
+//    }
+
+
+}
