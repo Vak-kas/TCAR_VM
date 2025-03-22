@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class PodInfoDto {
+public class DeletePodRequestDto {
+    private String userEmail;
     private String podNamespace;
     private String podName;
-//    private String servicePort;
 }

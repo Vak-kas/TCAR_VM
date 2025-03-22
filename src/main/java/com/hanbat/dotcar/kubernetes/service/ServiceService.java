@@ -7,6 +7,7 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServicePort;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
+import io.kubernetes.client.proto.V1;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -44,5 +45,20 @@ public class ServiceService {
         }
 
         return service;
+    }
+
+
+    public V1Service getService(String podName, String podNamespace) throws ApiException{
+        //TODO : 예외 처리
+        String serviceName = "svc-" + podName;
+        V1Service v1Service = coreV1Api.readNamespacedService(serviceName, podNamespace).execute();
+        return v1Service;
+    }
+
+    public void deleteService(V1Service v1Service) throws  ApiException{
+        String serviceName = v1Service.getMetadata().getName();
+        String podNamespace = v1Service.getMetadata().getNamespace();
+
+        coreV1Api.deleteNamespacedService(serviceName, podNamespace).execute();
     }
 }

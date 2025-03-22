@@ -1,18 +1,12 @@
 package com.hanbat.dotcar.kubernetes;
 
-import com.hanbat.dotcar.kubernetes.dto.CreatePodRequestDto;
-import com.hanbat.dotcar.kubernetes.dto.CreatePodResponseDto;
-import com.hanbat.dotcar.kubernetes.dto.PodFailResponseDto;
-import com.hanbat.dotcar.kubernetes.dto.PodInfoDto;
+import com.hanbat.dotcar.kubernetes.dto.*;
 import com.hanbat.dotcar.kubernetes.service.InstanceService;
 import io.kubernetes.client.openapi.ApiException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
@@ -23,7 +17,7 @@ public class PodController {
 
 
     @PostMapping("/create")
-    public ResponseEntity<?> createContainer(@RequestBody CreatePodRequestDto createPodRequestDto) {
+    public ResponseEntity<?> createInstance(@RequestBody CreatePodRequestDto createPodRequestDto) {
         try {
             PodInfoDto podInfoDto = instanceService.createInstance(createPodRequestDto);
             CreatePodResponseDto createPodResponseDto = CreatePodResponseDto.builder()
@@ -39,6 +33,25 @@ public class PodController {
         } catch (ApiException e) {
             PodFailResponseDto podFailResponseDto = PodFailResponseDto.builder()
                     .message("Pod 생성 실패: " + e.getResponseBody())
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(podFailResponseDto);
+        }
+    }
+
+
+    //TODO : 임시코드
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> deleteInstance(@RequestBody DeletePodRequestDto deletePodRequestDto){
+        try{
+            instanceService.deleteInstance(deletePodRequestDto);
+            DeletePodResponseDto deletePodResponseDto = new DeletePodResponseDto().builder()
+                    .message("삭제 성공!")
+                    .build();
+            return ResponseEntity.status(HttpStatus.OK).body(deletePodResponseDto);
+
+        } catch (ApiException e){
+            PodFailResponseDto podFailResponseDto = PodFailResponseDto.builder()
+                    .message("Pod 삭제 실패 : " +e.getResponseBody())
                     .build();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(podFailResponseDto);
         }

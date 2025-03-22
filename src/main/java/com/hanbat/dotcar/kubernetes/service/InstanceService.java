@@ -2,6 +2,7 @@ package com.hanbat.dotcar.kubernetes.service;
 
 import com.hanbat.dotcar.kubernetes.domain.Pod;
 import com.hanbat.dotcar.kubernetes.domain.PodStatus;
+import com.hanbat.dotcar.kubernetes.dto.DeletePodRequestDto;
 import com.hanbat.dotcar.kubernetes.repository.PodRepository;
 import com.hanbat.dotcar.kubernetes.dto.CreatePodRequestDto;
 import com.hanbat.dotcar.kubernetes.dto.PodInfoDto;
@@ -69,6 +70,40 @@ public class InstanceService {
 
 
         return podInfoDto;
+    }
+
+
+    public void deleteInstance(DeletePodRequestDto deletePodRequestDto) throws ApiException{
+        String userEmail = deletePodRequestDto.getUserEmail();
+        String userRole = validateService.getUserRole(userEmail);
+
+        String podNamespace = deletePodRequestDto.getPodNamespace();
+        String podName = deletePodRequestDto.getPodName();
+
+        String serviceName = "svc-" + podName;
+
+        //TODO : 삭제 권한 확인
+
+        //TODO : podNamespace와 podName으로 pod 찾기
+        V1Pod v1Pod = podService.getPod(podName, podNamespace);
+
+        //TODO : 해당 pod와 연결된 service찾기
+        V1Service v1Service = serviceService.getService(podName, podNamespace);
+
+        //TODO : 해당 서비스를 바라보는 ingress 찾기
+        V1Ingress v1Ingress = ingressService.getIngress(podName, podNamespace);
+
+        //TODO : 해당 ingress에서 해당 서비스를 찾아보는 rule 삭제
+        ingressService.deleteIngressPath(v1Ingress, v1Service, userRole);
+
+        //TODO: 서비스 삭제
+        serviceService.deleteService(v1Service);
+
+        //TODO : Pod 삭제
+        podService.deletePod(podName, podNamespace);
+
+
+
     }
 
 

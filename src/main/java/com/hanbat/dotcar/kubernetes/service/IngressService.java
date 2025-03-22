@@ -1,5 +1,6 @@
 package com.hanbat.dotcar.kubernetes.service;
 
+import com.google.protobuf.Api;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.*;
@@ -74,7 +75,7 @@ public class IngressService {
         String serviceName = "svc-" + podName;
 
         try{
-            V1Ingress v1Ingress = networkingV1Api.readNamespacedIngress(ingressName, DEFAULT_NAMESPACE).execute();
+            V1Ingress v1Ingress = networkingV1Api.readNamespacedIngress(ingressName, namespace).execute();
             List<V1IngressRule> rules = v1Ingress.getSpec().getRules();
 
             for (V1IngressRule rule : rules){
@@ -98,6 +99,28 @@ public class IngressService {
         } catch (ApiException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Ingress 생성 실패");
         }
+
+    }
+
+    public V1Ingress getIngress(String podName, String podNamespace) throws ApiException{
+        V1Ingress v1Ingress = networkingV1Api.readNamespacedIngress(USER_INGRESS, podNamespace).execute();
+        return v1Ingress;
+    }
+
+    public void deleteIngressPath(V1Ingress v1Ingress, V1Service v1Service, String userRole) throws ApiException {
+        List<V1IngressRule> rules = v1Ingress.getSpec().getRules();
+        String host = getIngressHost(userRole);
+        String podNamespace = v1Service.getMetadata().getNamespace();
+        String serviceName = v1Service.getMetadata().getName();
+
+        for(V1IngressRule rule : rules){
+            if(rule.getHost().equals(host)){
+                List<V1HTTPIngressPath> paths = rule.getHttp().getPaths();
+                paths.removeIf(path -> path.getBackend().getService().getName().equals(serviceName));
+            }
+        }
+
+        networkingV1Api.replaceNamespacedIngress(USER_INGRESS, podNamespace, v1Ingress).execute();
 
     }
 

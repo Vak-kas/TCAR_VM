@@ -1,5 +1,6 @@
 package com.hanbat.dotcar.kubernetes.service;
 
+import com.google.protobuf.Api;
 import com.hanbat.dotcar.kubernetes.domain.PodStatus;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -116,6 +117,15 @@ public class PodService {
 //    public V1Pod getV1Pod(String namespace, String podName){
 //
 //    }
+    public V1Pod getPod(String podName, String podNamespace) throws ApiException {
+        //TODO : 예외처리
+        V1Pod v1Pod = coreV1Api.readNamespacedPod(podName, podNamespace).execute();
+        return v1Pod;
+    }
+
+    public void deletePod(String podName, String podNamespace) throws ApiException{
+        V1Pod v1Pod = coreV1Api.deleteNamespacedPod(podName, podNamespace).execute();
+    }
 
 
 }
