@@ -22,9 +22,11 @@ public class PodService {
     private final ValidateService validateService;
     private final CoreV1Api coreV1Api;
 
+    private final String DEFAULT_NAMESPACE = "default";
+
 
     public V1Pod createPodSpec(String os, String version, String userEmail){
-        String namespace = "default";
+        String namespace = DEFAULT_NAMESPACE;
         String podName = "pod-" + UUID.randomUUID().toString().substring(0, 8);
 
         //컨테이너 사양

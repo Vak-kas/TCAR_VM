@@ -26,6 +26,7 @@ public class InstanceService {
     private final ValidateService validateService;
     private final IngressService ingressService;
     private final PodService podService;
+    private final ServiceService serviceService;
 
     public PodInfoDto createInstance(CreatePodRequestDto requestDto) throws ApiException{
         String os = requestDto.getOs();
@@ -42,6 +43,9 @@ public class InstanceService {
         String namespace = pod.getMetadata().getNamespace();
         String podName = pod.getMetadata().getName();
         PodStatus podStatus = podService.getPodStatus(pod);
+
+        V1Service service = serviceService.createV1Service(namespace, podName);
+        ingressService.addIngresPath(userEmail, namespace, podName);
 
 
         Pod dbPod = Pod.builder()
