@@ -67,12 +67,19 @@ public class IngressService {
 
 
     //*** Ingress Path 추가 ***//
-    public void addIngresPath(String userEmail, String namespace, String podName){
+    public void addIngresPath(String userRole, V1Service v1Service){
+        String namespace = v1Service.getMetadata().getNamespace();
+        String serviceName = v1Service.getMetadata().getName();
+        String podName;
+        if(serviceName.startsWith("svc-")){
+            podName = serviceName.substring(4);
+        }
+        else{
+            podName = serviceName;
+        }
         String ingressName = USER_INGRESS;
-        String userRole = validateService.getUserRole(userEmail);
         String host = getIngressHost(userRole);
         String path = "/" + namespace + "/" + podName;
-        String serviceName = "svc-" + podName;
 
         try{
             V1Ingress v1Ingress = networkingV1Api.readNamespacedIngress(ingressName, namespace).execute();

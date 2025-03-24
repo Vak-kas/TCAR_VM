@@ -48,9 +48,7 @@ public class ServiceService {
     }
 
 
-    public V1Service getService(String podName, String podNamespace) throws ApiException{
-        //TODO : 예외 처리
-        String serviceName = "svc-" + podName;
+    public V1Service getService(String serviceName, String podNamespace) throws ApiException{
         V1Service v1Service = coreV1Api.readNamespacedService(serviceName, podNamespace).execute();
         return v1Service;
     }

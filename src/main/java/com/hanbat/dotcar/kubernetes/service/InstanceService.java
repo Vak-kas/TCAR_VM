@@ -33,6 +33,7 @@ public class InstanceService {
         String os = requestDto.getOs();
         String version = requestDto.getVersion();
         String userEmail = requestDto.getUserEmail();
+        String userRole = validateService.getUserRole(userEmail);
 
 
         // 생성 권한 확인
@@ -40,13 +41,17 @@ public class InstanceService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "서버 생성 조건을 만족하지 못합니다.");
         }
 
-        V1Pod pod = podService.createPodSpec(os, version, userEmail);
+        //컨테이너 생성
+        V1Pod pod = podService.createPodSpec(os, version, userRole);
         String namespace = pod.getMetadata().getNamespace();
         String podName = pod.getMetadata().getName();
         PodStatus podStatus = podService.getPodStatus(pod);
 
+        //서비스 생성
         V1Service service = serviceService.createV1Service(namespace, podName);
-        ingressService.addIngresPath(userEmail, namespace, podName);
+
+        //ingress rule 생성
+        ingressService.addIngresPath(userRole, service);
 
 
         Pod dbPod = Pod.builder()
@@ -84,22 +89,22 @@ public class InstanceService {
 
         //TODO : 삭제 권한 확인
 
-        //TODO : podNamespace와 podName으로 pod 찾기
+        //podNamespace와 podName으로 pod 찾기
         V1Pod v1Pod = podService.getPod(podName, podNamespace);
 
-        //TODO : 해당 pod와 연결된 service찾기
-        V1Service v1Service = serviceService.getService(podName, podNamespace);
+        //해당 pod와 연결된 service찾기
+        V1Service v1Service = serviceService.getService(serviceName, podNamespace);
 
-        //TODO : 해당 서비스를 바라보는 ingress 찾기
+        //Ingress 불러오기
         V1Ingress v1Ingress = ingressService.getIngress(podName, podNamespace);
 
-        //TODO : 해당 ingress에서 해당 서비스를 찾아보는 rule 삭제
+        //해당 ingress에서 해당 서비스를 찾아보는 rule 삭제
         ingressService.deleteIngressPath(v1Ingress, v1Service, userRole);
 
-        //TODO: 서비스 삭제
+        //서비스 삭제
         serviceService.deleteService(v1Service);
 
-        //TODO : Pod 삭제
+        //Pod 삭제
         podService.deletePod(podName, podNamespace);
 
 

@@ -26,7 +26,7 @@ public class PodService {
     private final String DEFAULT_NAMESPACE = "default";
 
 
-    public V1Pod createPodSpec(String os, String version, String userEmail){
+    public V1Pod createPodSpec(String os, String version, String userRole){
         String namespace = DEFAULT_NAMESPACE;
         String podName = "pod-" + UUID.randomUUID().toString().substring(0, 8);
 
@@ -43,7 +43,6 @@ public class PodService {
                 .containers(Collections.singletonList(v1Container))
                 .overhead(null);
 
-        String userRole = validateService.getUserRole(userEmail);
         //Pod metaData
         V1ObjectMeta v1ObjectMeta = new V1ObjectMeta()
                 .name(podName)
@@ -118,7 +117,6 @@ public class PodService {
 //
 //    }
     public V1Pod getPod(String podName, String podNamespace) throws ApiException {
-        //TODO : 예외처리
         V1Pod v1Pod = coreV1Api.readNamespacedPod(podName, podNamespace).execute();
         return v1Pod;
     }
