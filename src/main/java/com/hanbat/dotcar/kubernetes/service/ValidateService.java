@@ -75,6 +75,7 @@ public class ValidateService {
 
     public boolean deletePodUserPermission(String userEmail){
         String role = getUserRole(userEmail);
+        return true;
 
     }
 

@@ -57,12 +57,12 @@ public class IngressService {
 
     //*** UserRole이 BASIC일 경우 URL 주소 ***//
     private String basicIngressUrl(String userEmail, String namespace, String podName){
-        return String.format("tcar.basic.connection.com/%s/%s/%s", userEmail, namespace, podName);
+        return String.format("tcar.basic.connection.com/%s/%s", namespace, podName);
     }
 
     //*** UserRole이 ADMIN일 경우 URL 주소 ***//
     private String adminIngressUrl(String userEmail, String namespace, String podName){
-        return String.format("tcar.admin.connection.com/%s/%s/%s", userEmail, namespace, podName);
+        return String.format("tcar.admin.connection.com/%s/%s", namespace, podName);
     }
 
 

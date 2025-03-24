@@ -26,7 +26,7 @@ public class PodService {
     private final String DEFAULT_NAMESPACE = "default";
 
 
-    public V1Pod createPodSpec(String os, String version, String userRole){
+    public V1Pod createPodSpec(String os, String version){
         String namespace = DEFAULT_NAMESPACE;
         String podName = "pod-" + UUID.randomUUID().toString().substring(0, 8);
 
@@ -34,9 +34,9 @@ public class PodService {
         V1Container v1Container = new V1Container()
                 .name(podName)
                 .image(imageService.getImage(os, version))
-                .ports(Collections.singletonList(new V1ContainerPort().containerPort(80)))
-                .command(Collections.singletonList("/bin/bash"))
-                .args(Arrays.asList("-c", "while true; do sleep 30; done"));
+                .ports(Collections.singletonList(new V1ContainerPort().containerPort(80)));
+//                .command(Collections.singletonList("/bin/bash"))
+//                .args(Arrays.asList("-c", "while true; do sleep 30; done"));
 
         //Pod 사양
         V1PodSpec v1PodSpec = new V1PodSpec()
@@ -47,7 +47,7 @@ public class PodService {
         V1ObjectMeta v1ObjectMeta = new V1ObjectMeta()
                 .name(podName)
                 .namespace(namespace)
-                .labels(Collections.singletonMap("role", userRole));
+                .labels(Collections.singletonMap("app", podName));
 
         //pod 객체 생성
         V1Pod pod = new V1Pod()

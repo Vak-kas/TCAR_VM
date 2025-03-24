@@ -42,7 +42,7 @@ public class InstanceService {
         }
 
         //컨테이너 생성
-        V1Pod pod = podService.createPodSpec(os, version, userRole);
+        V1Pod pod = podService.createPodSpec(os, version);
         String namespace = pod.getMetadata().getNamespace();
         String podName = pod.getMetadata().getName();
         PodStatus podStatus = podService.getPodStatus(pod);
@@ -54,6 +54,8 @@ public class InstanceService {
         ingressService.addIngresPath(userRole, service);
 
 
+
+        //TODO : PENDING으로 저장되는 과정 확인
         Pod dbPod = Pod.builder()
                 .podName(podName)
                 .podNamespace(namespace)
