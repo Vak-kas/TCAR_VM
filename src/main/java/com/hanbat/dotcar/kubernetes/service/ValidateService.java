@@ -1,8 +1,10 @@
 package com.hanbat.dotcar.kubernetes.service;
 
+import com.hanbat.dotcar.kubernetes.domain.Pod;
 import com.hanbat.dotcar.kubernetes.domain.PodStatus;
 import com.hanbat.dotcar.kubernetes.dto.UserRoleResponseDto;
 import com.hanbat.dotcar.kubernetes.repository.PodRepository;
+import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -10,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -73,9 +76,32 @@ public class ValidateService {
 
     }
 
-    public boolean deletePodUserPermission(String userEmail){
+    public boolean deletePodUserPermission(V1Pod v1Pod, String userEmail){
         String role = getUserRole(userEmail);
+        //ADMIN이라면 강제 삭제 권한 존재
+        if(role.equals("ADMIN")){
+            return true;
+        }
+
+        String podName = v1Pod.getMetadata().getName();
+        String podNamespace = v1Pod.getMetadata().getNamespace();
+
+        //podName과 podNamespace로 pod를 찾고
+        Optional<Pod> findPod = podRepository.findByPodNameAndPodNamespace(podName, podNamespace);
+
+        if(findPod.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 유저가 생성한 서버를 찾을 수 없습니다.");
+        }
+
+        Pod pod = findPod.get();
+        String madeBy = pod.getUserEmail();
+
+        //생성자와 요청자의 이메일 주소가 같으면 삭제
+        if(!madeBy.equals(userEmail)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 서버를 삭제할 권한이 없습니다.");
+        }
         return true;
+
 
     }
 

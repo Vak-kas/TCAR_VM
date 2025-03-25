@@ -54,6 +54,11 @@ public class PodController {
                     .message("Pod 삭제 실패 : " +e.getResponseBody())
                     .build();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(podFailResponseDto);
+        } catch (Exception e) {
+            PodFailResponseDto podFailResponseDto = PodFailResponseDto.builder()
+                    .message("Pod 삭제 실패 : " +e.getMessage())
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(podFailResponseDto);
         }
     }
 

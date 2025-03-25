@@ -89,10 +89,13 @@ public class InstanceService {
 
         String serviceName = "svc-" + podName;
 
-        //TODO : 삭제 권한 확인
-
         //podNamespace와 podName으로 pod 찾기
         V1Pod v1Pod = podService.getPod(podName, podNamespace);
+
+        //삭제 권한 확인
+        if(!validateService.deletePodUserPermission(v1Pod, userEmail)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "삭제 권한이 없습니다.");
+        }
 
         //해당 pod와 연결된 service찾기
         V1Service v1Service = serviceService.getService(serviceName, podNamespace);
