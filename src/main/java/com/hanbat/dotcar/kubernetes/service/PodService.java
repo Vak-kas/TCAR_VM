@@ -111,11 +111,31 @@ public class PodService {
         return podStatus;
     }
 
+    public PodStatus waitForRunning(V1Pod pod){
+        int maxRetry = 10;
+        int retry = 0;
+        int delayMs = 1000; //1초
 
-//    //*** namespace와 podName으로 V1Pod 객체 가져오기 ***//
-//    public V1Pod getV1Pod(String namespace, String podName){
-//
-//    }
+
+        //Polling
+        while (retry < maxRetry){
+            PodStatus status = getPodStatus(pod);
+            if(status == PodStatus.RUNNING){
+                return status;
+            }
+            try{
+                Thread.sleep(delayMs);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();;
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "");
+            }
+            retry++;
+        }
+        throw new ResponseStatusException(HttpStatus.REQUEST_TIMEOUT, "Pod가 예상 시간 내에 Running 상태가 되지 않았습니다.");
+
+    }
+
+
     public V1Pod getPod(String podName, String podNamespace) throws ApiException {
         V1Pod v1Pod = coreV1Api.readNamespacedPod(podName, podNamespace).execute();
         return v1Pod;

@@ -95,6 +95,7 @@ public class ValidateService {
 
         Pod pod = findPod.get();
         String madeBy = pod.getUserEmail();
+        System.out.println(madeBy);
 
         //생성자와 요청자의 이메일 주소가 같으면 삭제
         if(!madeBy.equals(userEmail)){

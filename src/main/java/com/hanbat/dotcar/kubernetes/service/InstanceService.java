@@ -9,6 +9,7 @@ import com.hanbat.dotcar.kubernetes.dto.PodInfoDto;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -45,7 +46,7 @@ public class InstanceService {
         V1Pod pod = podService.createPodSpec(os, version);
         String namespace = pod.getMetadata().getNamespace();
         String podName = pod.getMetadata().getName();
-        PodStatus podStatus = podService.getPodStatus(pod);
+        PodStatus podStatus = podService.waitForRunning(pod);
 
         //서비스 생성
         V1Service service = serviceService.createV1Service(namespace, podName);
@@ -79,7 +80,7 @@ public class InstanceService {
         return podInfoDto;
     }
 
-
+    @Transactional
     public void deleteInstance(DeletePodRequestDto deletePodRequestDto) throws ApiException{
         String userEmail = deletePodRequestDto.getUserEmail();
         String userRole = validateService.getUserRole(userEmail);
@@ -111,6 +112,10 @@ public class InstanceService {
 
         //Pod 삭제
         podService.deletePod(podName, podNamespace);
+
+        //TODO : 데이터베이스에 삭제 처리하기
+        podRepository.deleteByPodNameAndPodNamespace(podName, podNamespace);
+
 
 
 

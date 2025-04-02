@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface PodRepository extends JpaRepository<Pod, Long> {
     int countByUserEmailAndStatus(String userEmail, PodStatus podStatus);
     Optional<Pod> findByPodNameAndPodNamespace(String podName, String podNamespace);
+    void deleteByPodNameAndPodNamespace(String podName, String podNamespace);
 }
