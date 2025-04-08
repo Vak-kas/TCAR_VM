@@ -1,5 +1,6 @@
 package com.hanbat.dotcar.kubernetes.service;
 
+import com.hanbat.dotcar.access.service.AccessAuthorityService;
 import com.hanbat.dotcar.kubernetes.domain.Pod;
 import com.hanbat.dotcar.kubernetes.domain.PodStatus;
 import com.hanbat.dotcar.kubernetes.dto.DeletePodRequestDto;
@@ -26,6 +27,7 @@ public class InstanceService {
     private final IngressService ingressService;
     private final PodService podService;
     private final ServiceService serviceService;
+    private final AccessAuthorityService accessAuthorityService;
 
     public PodInfoDto createInstance(CreatePodRequestDto requestDto) throws ApiException{
         String os = requestDto.getOs();
@@ -66,6 +68,9 @@ public class InstanceService {
                 .build();
 
         podRepository.save(dbPod);
+
+        //TODO : 접근 권한 설정하기
+        accessAuthorityService.setAuthority(dbPod, userEmail);
 
 
         PodInfoDto podInfoDto = PodInfoDto.builder()

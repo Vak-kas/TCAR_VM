@@ -1,4 +1,4 @@
-package com.hanbat.dotcar.access;
+package com.hanbat.dotcar.access.service;
 
 import com.hanbat.dotcar.config.PreSignedUrlConfig;
 import io.jsonwebtoken.Claims;
@@ -38,7 +38,8 @@ public class ValidateService {
             return Map.of(
                     "userEmail", claims.getSubject(),
                     "podName", claims.get("podName", String.class),
-                    "podNamespace", claims.get("podNamespace", String.class)
+                    "podNamespace", claims.get("podNamespace", String.class),
+                    "ingress", claims.get("ingress", String.class)
             );
         } catch (ExpiredJwtException e){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다.");
