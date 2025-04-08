@@ -1,26 +1,22 @@
 package com.hanbat.dotcar.kubernetes.service;
 
-import com.google.protobuf.Api;
 import com.hanbat.dotcar.kubernetes.domain.PodStatus;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.*;
-import io.kubernetes.client.simplified.Pods;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Locale;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class PodService {
     private final ImageService imageService;
-    private final ValidateService validateService;
+    private final PermissionService permissionService;
     private final CoreV1Api coreV1Api;
 
     private final String DEFAULT_NAMESPACE = "default";

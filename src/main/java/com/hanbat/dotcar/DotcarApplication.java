@@ -14,6 +14,8 @@ public class DotcarApplication {
 		System.setProperty("DB_username", dotenv.get("DB_username"));
 		System.setProperty("DB_password", dotenv.get("DB_password"));
 
+		System.setProperty("pre_signed_url", dotenv.get("pre_signed_url"));
+
 		SpringApplication.run(DotcarApplication.class, args);
 	}
 

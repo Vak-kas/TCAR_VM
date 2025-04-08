@@ -15,17 +15,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
 public class InstanceService {
     private final PodRepository podRepository;
     private final CoreV1Api coreV1Api;
-    private final ValidateService validateService;
+    private final PermissionService permissionService;
     private final IngressService ingressService;
     private final PodService podService;
     private final ServiceService serviceService;
@@ -34,11 +31,11 @@ public class InstanceService {
         String os = requestDto.getOs();
         String version = requestDto.getVersion();
         String userEmail = requestDto.getUserEmail();
-        String userRole = validateService.getUserRole(userEmail);
+        String userRole = permissionService.getUserRole(userEmail);
 
 
         // 생성 권한 확인
-        if(!validateService.createPodUserPermission(userEmail)){
+        if(!permissionService.createPodUserPermission(userEmail)){
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "서버 생성 조건을 만족하지 못합니다.");
         }
 
@@ -83,7 +80,7 @@ public class InstanceService {
     @Transactional
     public void deleteInstance(DeletePodRequestDto deletePodRequestDto) throws ApiException{
         String userEmail = deletePodRequestDto.getUserEmail();
-        String userRole = validateService.getUserRole(userEmail);
+        String userRole = permissionService.getUserRole(userEmail);
 
         String podNamespace = deletePodRequestDto.getPodNamespace();
         String podName = deletePodRequestDto.getPodName();
@@ -94,7 +91,7 @@ public class InstanceService {
         V1Pod v1Pod = podService.getPod(podName, podNamespace);
 
         //삭제 권한 확인
-        if(!validateService.deletePodUserPermission(v1Pod, userEmail)){
+        if(!permissionService.deletePodUserPermission(v1Pod, userEmail)){
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "삭제 권한이 없습니다.");
         }
 

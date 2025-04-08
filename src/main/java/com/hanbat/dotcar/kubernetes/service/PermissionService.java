@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
-public class ValidateService {
+public class PermissionService {
     private final WebClient webClient;
     private final PodRepository podRepository;
 
