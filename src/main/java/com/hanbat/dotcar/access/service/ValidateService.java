@@ -28,7 +28,6 @@ public class ValidateService {
     //*** TOKEN 검증 및 payload return
     public Map<String, String> getClaimsFromToken(String token){
         try{
-            System.out.println(token);
             Claims claims = Jwts.parser()
                     .verifyWith(SECRET_KEY)
                     .build()
