@@ -54,9 +54,9 @@ public class InstanceService {
         //ingress rule 생성
         ingressService.addIngresPath(userRole, service);
 
+        String ingress = ingressService.generateIngressUrl(userEmail, namespace, podName);
 
 
-        //TODO : PENDING으로 저장되는 과정 확인
         Pod dbPod = Pod.builder()
                 .podName(podName)
                 .podNamespace(namespace)
@@ -64,7 +64,7 @@ public class InstanceService {
                 .version(version)
                 .createdAt(new Date())
                 .userEmail(userEmail)
-                .ingress(ingressService.generateIngressUrl(userEmail, namespace, podName))
+                .ingress(ingress)
                 .status(podStatus)
                 .build();
 
@@ -74,6 +74,7 @@ public class InstanceService {
         PodInfoDto podInfoDto = PodInfoDto.builder()
                 .podName(podName)
                 .podNamespace(namespace)
+                .ingress(ingress)
                 .build();
 
 
@@ -113,7 +114,7 @@ public class InstanceService {
         //Pod 삭제
         podService.deletePod(podName, podNamespace);
 
-        //TODO : 데이터베이스에 삭제 처리하기
+        //데이터베이스에 삭제
         podRepository.deleteByPodNameAndPodNamespace(podName, podNamespace);
 
 
