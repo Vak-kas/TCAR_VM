@@ -12,5 +12,6 @@ import lombok.NoArgsConstructor;
 public class PodInfoDto {
     private String podNamespace;
     private String podName;
+    private String ingress;
 //    private String servicePort;
 }
