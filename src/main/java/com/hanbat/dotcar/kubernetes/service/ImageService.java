@@ -16,7 +16,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ImageService {
     //TODO: 이미지 다운 실패시 디비에 저장되는 문제 해결
-    private static final String DEFAULT_IMAGE_REPOSITORY = "romanseo/";
+    private static final String DEFAULT_IMAGE_REPOSITORY = "";
 
     private final ImageRepository imageRepository;
     private final DockerClient dockerClient;

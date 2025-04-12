@@ -29,7 +29,7 @@ public class PermissionService {
 
     //테스트용
     public String getUserRole(String userEmail){
-        return "BASIC";
+        return "ADMIN";
     }
     //*** 유저 권한(등급) 가져오기 ***//
     //         -> 유저 존재 여부 확인

@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -30,9 +31,11 @@ public class PodService {
         V1Container v1Container = new V1Container()
                 .name(podName)
                 .image(imageService.getImage(os, version))
-                .ports(Collections.singletonList(new V1ContainerPort().containerPort(80)));
-//                .command(Collections.singletonList("/bin/bash"))
-//                .args(Arrays.asList("-c", "while true; do sleep 30; done"));
+//                .ports(Collections.singletonList(new V1ContainerPort().containerPort(80)));
+                .command(Collections.singletonList("/bin/bash"))
+                .args(Arrays.asList("-c", "while true; do sleep 30; done"))
+                .tty(true)
+                .stdin(true);
 
         //Pod 사양
         V1PodSpec v1PodSpec = new V1PodSpec()
