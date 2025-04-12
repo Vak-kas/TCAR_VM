@@ -29,7 +29,7 @@ public class AccessService {
     private final PodService podService;
     private final AccessRepository accessRepository;
 
-    public String accessPod(String token){
+    public void accessPod(String token){
         // 토큰 유효 여부 확인
         Map<String, String> claims = validatePresignedUrl(token);
         String userEmail = claims.get("userEmail");
@@ -67,10 +67,8 @@ public class AccessService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 서버에 접근 권한이 없습니다.");
         }
 
-        String ingress = claims.get("ingress");
-        String redirectUrl = "http://" + ingress;
-
-        return redirectUrl;
+//        String ingress = claims.get("ingress");
+//        String redirectUrl = "http://" + ingress;
     }
 
 

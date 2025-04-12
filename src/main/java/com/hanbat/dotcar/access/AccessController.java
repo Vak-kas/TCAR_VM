@@ -15,8 +15,12 @@ import org.springframework.web.server.ResponseStatusException;
 public class AccessController {
     private final AccessService accessService;
 
+    private final String KUBE_IP = "127.0.0.1";
+
     @GetMapping("/presigned/validate")
-    public ResponseEntity<?> accessPod(@RequestParam String token) {
+    public ResponseEntity<?> accessPod(@RequestParam String token,
+                                       @RequestParam String podName,
+                                       @RequestParam String podNamespace) {
         String redirectUrl;
 
         //토큰 값 확인
@@ -26,8 +30,30 @@ public class AccessController {
                     .build();
             return ResponseEntity.badRequest().body(accessFailResponseDto);
         }
+
+        //podName 값 확인
+        if (podName == null || podName.isBlank()){
+            AccessFailResponseDto accessFailResponseDto = AccessFailResponseDto.builder()
+                    .message("서버 이름이 필요합니다")
+                    .build();
+            return ResponseEntity.badRequest().body(accessFailResponseDto);
+        }
+
+        //podNamespace값 확인
+        if (podNamespace == null || podNamespace.isBlank()){
+            AccessFailResponseDto accessFailResponseDto = AccessFailResponseDto.builder()
+                    .message("서버 범위가 필요합니다")
+                    .build();
+            return ResponseEntity.badRequest().body(accessFailResponseDto);
+        }
+
         try{
-            redirectUrl = accessService.accessPod(token);
+            accessService.accessPod(token);
+
+            redirectUrl = String.format(
+                    "ws://%s/ws/terminal?token=%s&podName=%s&namespace=%s",
+                    KUBE_IP, token, podName, podNamespace
+            );
             return ResponseEntity.status(HttpStatus.FOUND)
                     .header(HttpHeaders.LOCATION, redirectUrl)
                     .build();
