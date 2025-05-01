@@ -51,12 +51,10 @@ public class AccessController {
             accessService.accessPod(token);
 
             redirectUrl = String.format(
-                    "ws://%s/ws/terminal?token=%s&podName=%s&namespace=%s",
+                    "ws://%s/ws/terminal?token=%s&podName=%s&podNamespace=%s",
                     KUBE_IP, token, podName, podNamespace
             );
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .header(HttpHeaders.LOCATION, redirectUrl)
-                    .build();
+            return ResponseEntity.status(HttpStatus.OK).body(redirectUrl);
         } catch(ResponseStatusException e){
             AccessFailResponseDto accessFailResponseDto = AccessFailResponseDto.builder()
                     .message(e.getReason())

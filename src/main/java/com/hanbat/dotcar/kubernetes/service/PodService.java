@@ -32,8 +32,8 @@ public class PodService {
                 .name(podName)
                 .image(imageService.getImage(os, version))
 //                .ports(Collections.singletonList(new V1ContainerPort().containerPort(80)));
-                .command(Collections.singletonList("/bin/bash"))
-                .args(Arrays.asList("-c", "while true; do sleep 30; done"))
+//                .command(Collections.singletonList("/bin/bash"))
+//                .args(Arrays.asList("-c", "while true; do sleep 30; done"))
                 .tty(true)
                 .stdin(true);
 

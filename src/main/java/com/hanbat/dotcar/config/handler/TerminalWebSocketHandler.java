@@ -1,6 +1,7 @@
 package com.hanbat.dotcar.config.handler;
 
 import com.hanbat.dotcar.access.service.AccessService;
+import com.hanbat.dotcar.terminal.TerminalHandleService;
 import com.hanbat.dotcar.terminal.TerminalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -10,40 +11,46 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Configuration
 @RequiredArgsConstructor
 public class TerminalWebSocketHandler extends TextWebSocketHandler {
     private final TerminalService terminalService;
     private final AccessService accessService;
+    private final TerminalHandleService terminalHandleService;
+
+//    private final Map<String, OutputStream> sessionOutputStreams = new ConcurrentHashMap<>();
 
     //메시지 처리
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        try {
-            String payload = message.getPayload();
-            System.out.println("서버에서 보내는 응답: " + payload);
-            session.sendMessage(new TextMessage("서버에서 보내는 응답: " + payload));
-        } catch (IOException e) {
-            System.err.println("Broken pipe: 클라이언트 연결이 끊겼습니다.");
-        }
+        terminalHandleService.writeToPod(session.getId(), message.getPayload());
     }
 
     //연결 설정 후
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+        System.out.println("[+] WebSocket 연결됨: " + session.getId());
         URI uri = session.getUri();
         String query = uri.getQuery();
+//        System.out.println(query);
 
         Map<String, String> params = terminalService.getQueryParam(query);
         String token = params.get("token");
         String podName = params.get("podName");
         String podNamespace = params.get("podNamespace");
+        System.out.println("token: " + token);
+        System.out.println("podName: " + podName);
+        System.out.println("namespace: " + podNamespace);
+        System.out.println("params: " + params);
 
         try{
             accessService.validatePresignedUrl(token);
+
             terminalService.connectToPodTerminal(podName, podNamespace, session);
         } catch (Exception e) {
             session.close(CloseStatus.BAD_DATA);
