@@ -2,6 +2,7 @@ package com.hanbat.dotcar.access.service;
 
 import com.hanbat.dotcar.access.AccessRepository;
 import com.hanbat.dotcar.access.domain.AccessAuthority;
+import com.hanbat.dotcar.access.dto.AccessiblePodDto;
 import com.hanbat.dotcar.kubernetes.domain.Pod;
 import com.hanbat.dotcar.kubernetes.domain.PodStatus;
 import com.hanbat.dotcar.kubernetes.repository.PodRepository;
@@ -15,9 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -89,6 +88,47 @@ public class AccessService {
 
         return claims;
 
+    }
+
+    public List<AccessiblePodDto> getAccessiblePods(String userEmail) {
+        // DB에서 이 사용자가 접근 권한을 가진 pod 이름/namespace를 가져옴
+        List<Pod> pods = accessRepository.findAccessibleRunningPodsByUserEmail(userEmail);
+        if (pods.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<AccessiblePodDto> result = new ArrayList<>();
+        for (Pod pod : pods) {
+            String podName = pod.getPodName();  // AccessAuthority 엔티티에 있어야 함
+            String namespace = pod.getPodNamespace();  // 기본 default
+            String ingressUrl = pod.getIngress();
+
+            V1Pod realPod;
+            try{
+                realPod = podService.getPod(podName, namespace);
+            } catch (ApiException e) {
+                // TODO : 못불러 온 이유 찾고 처리하는 코드 필요
+                System.err.println("⚠️ Pod 상태 조회 실패: " + podName + " - 건너뜀");
+                continue;
+            }
+
+            PodStatus status = podService.getPodStatus(realPod);
+
+            String accessType = pod.getUserEmail().equals(userEmail) ? "owner" : "guest";
+
+
+            AccessiblePodDto dto = AccessiblePodDto.builder()
+                    .podName(podName)
+                    .namespace(namespace)
+                    .status(status)
+                    .ingressUrl(ingressUrl)
+                    .accessType(accessType)
+                    .build();
+
+            result.add(dto);
+        }
+
+        return result;
     }
 
 

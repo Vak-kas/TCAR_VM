@@ -1,6 +1,8 @@
 package com.hanbat.dotcar.access;
 
+import com.hanbat.dotcar.access.domain.AccessAuthority;
 import com.hanbat.dotcar.access.dto.AccessFailResponseDto;
+import com.hanbat.dotcar.access.dto.AccessiblePodDto;
 import com.hanbat.dotcar.access.service.AccessService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -8,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -62,4 +66,13 @@ public class AccessController {
             return ResponseEntity.status(e.getStatusCode()).body(accessFailResponseDto);
         }
     }
+
+    @GetMapping("/pods")
+    public ResponseEntity<List<AccessiblePodDto>> getAccessiblePods(@RequestParam String userEmail) {
+        List<AccessiblePodDto> pods = accessService.getAccessiblePods(userEmail);
+        return ResponseEntity.ok(pods);
+    }
+
+
+
 }
