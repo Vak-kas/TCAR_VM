@@ -26,6 +26,7 @@ public class AccessController {
                                        @RequestParam String podName,
                                        @RequestParam String podNamespace) {
         String redirectUrl;
+        System.out.println("1차 검증");
 
         //토큰 값 확인
         if (token == null || token.isBlank()){

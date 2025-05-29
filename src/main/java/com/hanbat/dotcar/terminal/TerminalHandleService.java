@@ -19,9 +19,9 @@ public class TerminalHandleService {
     private final Map<String, OutputStream> sessionOutputStreams = new ConcurrentHashMap<>();
 
     public void writeToPod(String sessionId, String message) {
-        System.out.println("sessionOutputStreams 키들: " + sessionOutputStreams.keySet());
+//        System.out.println("sessionOutputStreams 키들: " + sessionOutputStreams.keySet());
         try {
-            System.out.println("🔁 writeToPod: " + message);
+//            System.out.println("🔁 writeToPod: " + message);
             OutputStream podIn = sessionOutputStreams.get(sessionId);
             if (podIn != null) {
                 podIn.write(message.getBytes(StandardCharsets.UTF_8));

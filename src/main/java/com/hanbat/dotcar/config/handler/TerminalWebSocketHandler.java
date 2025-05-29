@@ -39,18 +39,21 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
         String query = uri.getQuery();
 //        System.out.println(query);
 
+
         Map<String, String> params = terminalService.getQueryParam(query);
         String token = params.get("token");
         String podName = params.get("podName");
         String podNamespace = params.get("podNamespace");
-        System.out.println("token: " + token);
-        System.out.println("podName: " + podName);
-        System.out.println("namespace: " + podNamespace);
-        System.out.println("params: " + params);
+//        System.out.println("token: " + token);
+//        System.out.println("podName: " + podName);
+//        System.out.println("namespace: " + podNamespace);
+//        System.out.println("params: " + params);
 
         try{
+//            System.out.println("2차 검증");
             accessService.validatePresignedUrl(token);
 
+//            System.out.println("2차 검증 통과");
             terminalService.connectToPodTerminal(podName, podNamespace, session);
         } catch (Exception e) {
             session.close(CloseStatus.BAD_DATA);

@@ -42,7 +42,7 @@ public class TerminalService {
 
     public void connectToPodTerminal(String podName, String podNamespace, WebSocketSession session){
         Exec exec = new Exec();
-        String[] commands = {"/bin/bash", "-c", "stty raw -onlcr ; bash"};
+        String[] commands = {"/bin/bash", "-c", "stty > /dev/null 2>&1 ; bash"};
 //        String[] commands = {"/bin/bash"};
 
         try {
