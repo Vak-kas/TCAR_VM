@@ -65,5 +65,10 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         System.out.println("[+] afterConnectionClosed - Session: " + session.getId() + ", CloseStatus: " + status);
+        try{
+            terminalHandleService.writeToPod(session.getId(), "exit\n");
+        } catch (Exception ignore) {
+            //고아 프로세스는 주기적으로 관리
+        }
     }
 }
