@@ -1,6 +1,8 @@
-package com.hanbat.dotcar.terminal;
+package com.hanbat.dotcar.terminal.service;
 
 import io.kubernetes.client.custom.IOTrio;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -15,21 +17,51 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 @Service
+@RequiredArgsConstructor
 public class TerminalHandleService {
+    @Getter
+    private final ConcurrentHashMap<String, Long> lastActivityMap = new ConcurrentHashMap<>();
+    @Getter
     private final Map<String, OutputStream> sessionOutputStreams = new ConcurrentHashMap<>();
+    @Getter
+    private final Map<String, WebSocketSession> sessionMap = new ConcurrentHashMap<>();
+
+    private final MessageService messageService;
+
+    private final String START_CONNECT = "터미널에 연결되었습니다.\r\n";
+    private final String END_CONNECT = "연결이 종료되었습니다.\r\n";
+
 
     public void writeToPod(String sessionId, String message) {
-//        System.out.println("sessionOutputStreams 키들: " + sessionOutputStreams.keySet());
         try {
-//            System.out.println("🔁 writeToPod: " + message);
             OutputStream podIn = sessionOutputStreams.get(sessionId);
             if (podIn != null) {
                 podIn.write(message.getBytes(StandardCharsets.UTF_8));
+                lastActivityMap.put(sessionId, System.currentTimeMillis());
                 podIn.flush();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void handlePodToWebSocketStreaming(InputStream podOut, WebSocketSession session, MessageService messageService) {
+        Thread outputThread = new Thread(() -> {
+            try {
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = podOut.read(buffer)) != -1) {
+                    if (session.isOpen()) {
+                        String output = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
+                        String json = messageService.buildInputMessage(output);
+                        session.sendMessage(new TextMessage(json));
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        outputThread.start();
     }
 
     public Consumer<IOTrio> onOpenHandler(WebSocketSession session) {
@@ -42,32 +74,18 @@ public class TerminalHandleService {
 
                     // 여기서 sessionId -> podIn 매핑 저장
                     sessionOutputStreams.put(session.getId(), podIn);
+                    lastActivityMap.put(session.getId(), System.currentTimeMillis());
+                    sessionMap.put(session.getId(), session);
 
                     // Pod → WebSocket
-                    Thread outputThread = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                byte[] buffer = new byte[1024];
-                                int bytesRead;
-                                while ((bytesRead = podOut.read(buffer)) != -1) {
-                                    if (session.isOpen()) {
-                                        String output = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
-                                        System.out.println(buffer);
-                                        session.sendMessage(new TextMessage(output));
-                                    }
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
-                    outputThread.start();
+                    handlePodToWebSocketStreaming(podOut, session, messageService);
 
                     session.setTextMessageSizeLimit(4096);
                     session.setBinaryMessageSizeLimit(4096);
 
-                    session.sendMessage(new TextMessage("[+] 터미널 접속됨\r\n"));
+                    String json = messageService.buildNoticeMessage(START_CONNECT);
+                    session.sendMessage(new TextMessage(json));
+
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -78,6 +96,8 @@ public class TerminalHandleService {
 
     public void removeSession(String sessionId) {
         sessionOutputStreams.remove(sessionId);
+        lastActivityMap.remove(sessionId);
+        sessionMap.remove(sessionId);
     }
 
     public BiConsumer<Integer, IOTrio> onCloseHandler(WebSocketSession session){
@@ -85,7 +105,8 @@ public class TerminalHandleService {
             @Override
             public void accept(Integer code, IOTrio ioTrio) {
                 try{
-                    session.sendMessage(new TextMessage("[+] 연결 종료됨. 코드: " + code));
+                    String json = messageService.buildNoticeMessage(END_CONNECT);
+                    session.sendMessage(new TextMessage(json));
                     session.close();
                 } catch (IOException e) {
                     e.printStackTrace();

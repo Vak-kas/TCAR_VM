@@ -1,8 +1,8 @@
 package com.hanbat.dotcar.config.handler;
 
 import com.hanbat.dotcar.access.service.AccessService;
-import com.hanbat.dotcar.terminal.TerminalHandleService;
-import com.hanbat.dotcar.terminal.TerminalService;
+import com.hanbat.dotcar.terminal.service.TerminalHandleService;
+import com.hanbat.dotcar.terminal.service.TerminalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.CloseStatus;
@@ -10,11 +10,8 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URI;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Configuration
 @RequiredArgsConstructor
