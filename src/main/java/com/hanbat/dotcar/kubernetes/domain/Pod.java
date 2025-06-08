@@ -16,6 +16,9 @@ public class Pod {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable=true)
+    private String calledName; //사용자가 지정한 Pod 이름
+
     @Column(nullable = false)
     private String podName; // pod 이름
 

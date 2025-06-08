@@ -13,5 +13,6 @@ public class CreatePodResponseDto {
     private String podNamespace;
     private String podName;
     private String ingress;
+    private String calledName;
 //    private String servicePort;
 }

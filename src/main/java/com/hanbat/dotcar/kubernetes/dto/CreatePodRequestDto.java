@@ -12,5 +12,6 @@ import lombok.NoArgsConstructor;
 public class CreatePodRequestDto {
     private String os;
     private String version;
+    private String calledName;
     private String userEmail;
 }

@@ -34,6 +34,7 @@ public class InstanceService {
         String os = requestDto.getOs();
         String version = requestDto.getVersion();
         String userEmail = requestDto.getUserEmail();
+        String calledName = requestDto.getCalledName();
         String userRole = validateService.getUserRole(userEmail);
 
 
@@ -66,6 +67,7 @@ public class InstanceService {
                 .userEmail(userEmail)
                 .ingress(ingress)
                 .status(podStatus)
+                .calledName(calledName)
                 .build();
 
         podRepository.save(dbPod);
@@ -75,8 +77,8 @@ public class InstanceService {
                 .podName(podName)
                 .podNamespace(namespace)
                 .ingress(ingress)
+                .calledName(calledName)
                 .build();
-
 
         return podInfoDto;
     }
