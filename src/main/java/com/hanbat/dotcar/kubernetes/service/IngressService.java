@@ -1,11 +1,9 @@
 package com.hanbat.dotcar.kubernetes.service;
 
-import com.google.protobuf.Api;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.*;
 import lombok.RequiredArgsConstructor;
-import org.apache.http.HttpException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -15,7 +13,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class IngressService {
-    private final ValidateService validateService;
+    private final PermissionService permissionService;
     private final NetworkingV1Api networkingV1Api;
 
     private final String BASIC_HOST = "tcar.basic.connection.com";
@@ -25,7 +23,7 @@ public class IngressService {
 
     //*** IngressUrl 생성기 *** //
     public String generateIngressUrl(String userEmail, String namespace, String podName) {
-        String userRole = validateService.getUserRole(userEmail);
+        String userRole = permissionService.getUserRole(userEmail);
         String ingressUrl;
         if (userRole.equals("BASIC")) {
             ingressUrl = basicIngressUrl(userEmail, namespace, podName);
