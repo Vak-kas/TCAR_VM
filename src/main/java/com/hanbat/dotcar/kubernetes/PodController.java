@@ -24,6 +24,7 @@ public class PodController {
                     .podName(podInfoDto.getPodName())
                     .podNamespace(podInfoDto.getPodNamespace())
                     .ingress(podInfoDto.getIngress())
+                    .calledName(podInfoDto.getCalledName())
                     .build();
             return ResponseEntity.status(HttpStatus.CREATED).body(createPodResponseDto);
         } catch (ResponseStatusException e) {
