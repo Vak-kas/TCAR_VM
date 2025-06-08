@@ -6,6 +6,7 @@ import com.hanbat.dotcar.kubernetes.dto.UserRoleResponseDto;
 import com.hanbat.dotcar.kubernetes.repository.PodRepository;
 import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -17,6 +18,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Service
 public class PermissionService {
+    @Qualifier("webClient")
     private final WebClient webClient;
     private final PodRepository podRepository;
 
