@@ -12,5 +12,6 @@ public class AccessiblePodDto {
     private String namespace;
     private PodStatus status;
     private String ingressUrl;
+    private String calledName;
     private String accessType; // "owner" 또는 "guest"
 }
