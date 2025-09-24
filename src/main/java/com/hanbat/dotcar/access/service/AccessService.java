@@ -102,6 +102,7 @@ public class AccessService {
             String podName = pod.getPodName();  // AccessAuthority 엔티티에 있어야 함
             String namespace = pod.getPodNamespace();  // 기본 default
             String ingressUrl = pod.getIngress();
+            String calledName = pod.getCalledName();
 
             V1Pod realPod;
             try{
@@ -122,6 +123,7 @@ public class AccessService {
                     .namespace(namespace)
                     .status(status)
                     .ingressUrl(ingressUrl)
+                    .calledName(calledName)
                     .accessType(accessType)
                     .build();
 
