@@ -3,24 +3,38 @@ name: CI-CD Deploy to EC2 (Spring Boot)
 on:
   push:
     branches: ["main"]
+  workflow_dispatch: {}   # 수동 실행 버튼
+
+concurrency:
+  group: deploy-to-ec2
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
+
       - name: Build with Gradle
         run: ./gradlew clean build -x test
+
       - name: Find JAR
         id: find_jar
         run: |
           JAR=$(ls build/libs/*-SNAPSHOT.jar 2>/dev/null || ls build/libs/*.jar | head -n1)
           echo "jar=$JAR" >> $GITHUB_OUTPUT
-      - uses: actions/upload-artifact@v4
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
           name: app
           path: ${{ steps.find_jar.outputs.jar }}
@@ -28,25 +42,37 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
+      - name: Check required secrets
+        run: |
+          [ -n "${{ secrets.EC2_HOST }}" ] || (echo "❌ EC2_HOST is empty"; exit 1)
+          [ -n "${{ secrets.EC2_USER }}" ] || (echo "❌ EC2_USER is empty"; exit 1)
+          [ -n "${{ secrets.EC2_SSH_KEY }}" ] || (echo "❌ EC2_SSH_KEY is empty"; exit 1)
+
       - uses: actions/download-artifact@v4
         with:
           name: app
           path: .
+
       - name: Prepare SSH key
         run: |
-          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+          # PEM 줄바꿈/CRLF 보정
+          printf "%s" '${{ secrets.EC2_SSH_KEY }}' > key.pem
+          sed -i 's/\r$//' key.pem
           chmod 600 key.pem
+
       - name: Upload JAR to EC2
         run: |
-          scp -o StrictHostKeyChecking=no -i key.pem ./*.jar \
-              ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/opt/dotcar/app.jar
+          scp -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i key.pem ./*.jar \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/opt/dotcar/app.jar
+
       - name: Restart service
         run: |
-          ssh -o StrictHostKeyChecking=no -i key.pem \
-              ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "
-                sudo systemctl daemon-reload &&
-                sudo systemctl restart dotcar &&
-                sleep 3 &&
-                sudo systemctl status dotcar --no-pager -l
-              "
+          ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i key.pem \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "
+              sudo systemctl daemon-reload &&
+              sudo systemctl restart dotcar &&
+              sleep 3 &&
+              sudo systemctl status dotcar --no-pager -l
+            "
