@@ -3,7 +3,7 @@ name: CI-CD Deploy to EC2 (Spring Boot)
 on:
   push:
     branches: ["main"]
-  workflow_dispatch: {}   # 수동 실행 버튼
+  workflow_dispatch: {}
 
 concurrency:
   group: deploy-to-ec2
@@ -46,21 +46,33 @@ jobs:
     steps:
       - name: Check required secrets
         run: |
-          [ -n "${{ secrets.EC2_HOST }}" ] || (echo "❌ EC2_HOST is empty"; exit 1)
-          [ -n "${{ secrets.EC2_USER }}" ] || (echo "❌ EC2_USER is empty"; exit 1)
-          [ -n "${{ secrets.EC2_SSH_KEY }}" ] || (echo "❌ EC2_SSH_KEY is empty"; exit 1)
+          [ -n "${{ secrets.EC2_HOST }}" ] || (echo "❌ EC2_HOST empty"; exit 1)
+          [ -n "${{ secrets.EC2_USER }}" ] || (echo "❌ EC2_USER empty"; exit 1)
+          [ -n "${{ secrets.EC2_SSH_KEY }}" ] || (echo "❌ EC2_SSH_KEY empty"; exit 1)
 
       - uses: actions/download-artifact@v4
         with:
           name: app
           path: .
 
-      - name: Prepare SSH key
+      - name: Prepare SSH key (raw PEM)
+        shell: bash
         run: |
-          # PEM 줄바꿈/CRLF 보정
+          # 시크릿(멀티라인) → 파일
           printf "%s" '${{ secrets.EC2_SSH_KEY }}' > key.pem
+          # CRLF 제거(윈도 개행 방지)
           sed -i 's/\r$//' key.pem
           chmod 600 key.pem
+
+          # 간단 검증: 헤더/푸터 체크
+          head -n1 key.pem | grep -E 'BEGIN .* PRIVATE KEY' >/dev/null || { echo "❌ Invalid PEM header"; exit 1; }
+          tail -n1 key.pem | grep -E 'END .* PRIVATE KEY' >/dev/null || { echo "❌ Invalid PEM footer"; exit 1; }
+
+      # (선택) 인증 빠른 점검 — 실패하면 바로 원인 파악 용이
+      - name: Quick SSH auth check
+        run: |
+          ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i key.pem \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'echo OK'
 
       - name: Upload JAR to EC2
         run: |
