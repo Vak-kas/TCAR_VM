@@ -74,10 +74,26 @@ jobs:
           ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i key.pem \
             ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'echo OK'
 
-      - name: Upload JAR to EC2
+      - name: Ensure deploy dir exists (server-side)
+        run: |
+          ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i key.pem \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "
+              sudo mkdir -p /opt/dotcar
+            "
+
+      - name: Upload JAR to home (no sudo needed)
         run: |
           scp -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i key.pem ./*.jar \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/opt/dotcar/app.jar
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/tmp/app.jar
+
+      - name: Move JAR into place with sudo
+        run: |
+          ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i key.pem \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "
+              sudo mv /tmp/app.jar /opt/dotcar/app.jar &&
+              sudo chown root:root /opt/dotcar/app.jar &&
+              sudo chmod 644 /opt/dotcar/app.jar
+            "
 
       - name: Restart service
         run: |
