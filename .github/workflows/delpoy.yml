@@ -3,9 +3,9 @@ name: CI-CD Deploy to EC2 (Spring Boot)
 on:
   push:
     branches: ["main"]
-  workflow_dispatch: {}   # ← 수동 실행 버튼
+  workflow_dispatch: {}   # 수동 실행 버튼
 
-concurrency:               # ← 중복 실행 방지(연속 푸시 시 최신만)
+concurrency:
   group: deploy-to-ec2
   cancel-in-progress: true
 
@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Make gradlew executable   # ← 권장(gradlew 권한 이슈 예방)
+      - name: Make gradlew executable
         run: chmod +x gradlew
 
       - uses: actions/setup-java@v4
@@ -33,7 +33,8 @@ jobs:
           JAR=$(ls build/libs/*-SNAPSHOT.jar 2>/dev/null || ls build/libs/*.jar | head -n1)
           echo "jar=$JAR" >> $GITHUB_OUTPUT
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
           name: app
           path: ${{ steps.find_jar.outputs.jar }}
@@ -43,6 +44,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Check required secrets
+        run: |
+          [ -n "${{ secrets.EC2_HOST }}" ] || (echo "❌ EC2_HOST is empty"; exit 1)
+          [ -n "${{ secrets.EC2_USER }}" ] || (echo "❌ EC2_USER is empty"; exit 1)
+          [ -n "${{ secrets.EC2_SSH_KEY }}" ] || (echo "❌ EC2_SSH_KEY is empty"; exit 1)
+
       - uses: actions/download-artifact@v4
         with:
           name: app
@@ -50,6 +57,7 @@ jobs:
 
       - name: Prepare SSH key
         run: |
+          # PEM 줄바꿈/CRLF 보정
           printf "%s" '${{ secrets.EC2_SSH_KEY }}' > key.pem
           sed -i 's/\r$//' key.pem
           chmod 600 key.pem
