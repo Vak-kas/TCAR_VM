@@ -55,9 +55,11 @@ jobs:
           name: app
           path: .
 
-      - name: Prepare SSH key (from base64)
+      - name: Prepare SSH key
         run: |
-          echo "${{ secrets.EC2_SSH_KEY_B64 }}" | base64 -d > key.pem
+          # PEM 줄바꿈/CRLF 보정
+          printf "%s" '${{ secrets.EC2_SSH_KEY }}' > key.pem
+          sed -i 's/\r$//' key.pem
           chmod 600 key.pem
 
       - name: Upload JAR to EC2
