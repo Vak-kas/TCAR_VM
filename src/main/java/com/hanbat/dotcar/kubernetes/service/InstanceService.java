@@ -44,7 +44,8 @@ public class InstanceService {
         V1Pod pod = podService.createPodSpec(os, version);
         String namespace = pod.getMetadata().getNamespace();
         String podName = pod.getMetadata().getName();
-        PodStatus podStatus = podService.waitForRunning(pod);
+//        PodStatus podStatus = podService.waitForRunning(pod);
+        PodStatus podStatus = PodStatus.RUNNING;
 
         //서비스 생성
         V1Service service = serviceService.createV1Service(namespace, podName);
