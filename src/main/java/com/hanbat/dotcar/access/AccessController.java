@@ -19,7 +19,7 @@ import java.util.List;
 public class AccessController {
     private final AccessService accessService;
 
-    private final String KUBE_IP = "127.0.0.1";
+    private final String KUBE_IP = "3.39.199.192";
 
     @GetMapping("/presigned/validate")
     public ResponseEntity<?> accessPod(@RequestParam String token,
