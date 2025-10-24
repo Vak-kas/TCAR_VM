@@ -42,7 +42,7 @@ dependencies {
 
 
 	//k8s
-	implementation 'io.kubernetes:client-java:23.0.0'
+	implementation 'io.kubernetes:client-java:25.0.0'
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
 	implementation 'org.apache.httpcomponents.client5:httpclient5'
 
