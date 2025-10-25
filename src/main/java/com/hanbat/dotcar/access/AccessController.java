@@ -56,7 +56,7 @@ public class AccessController {
             accessService.accessPod(token);
 
             redirectUrl = String.format(
-                    "ws://%s/ws/terminal?token=%s&podName=%s&podNamespace=%s",
+                    "ws://%s:8080/ws/terminal?token=%s&podName=%s&podNamespace=%s",
                     KUBE_IP, token, podName, podNamespace
             );
             return ResponseEntity.status(HttpStatus.OK).body(redirectUrl);
